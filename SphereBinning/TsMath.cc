@@ -2,6 +2,8 @@
 
 #include "TsMath.hh"
 
+#include <algorithm>
+
 std::vector<G4double> TsMath::LogspacePy(G4double start, G4double stop, G4int num, G4bool endpoint, G4double base)
 {
     G4double realStart = pow(base, start);
