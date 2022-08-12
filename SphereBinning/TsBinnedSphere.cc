@@ -164,8 +164,8 @@ G4VPhysicalVolume *TsBinnedSphere::Construct()
 		G4String envelopeMaterialName = GetResolvedMaterialName();
 
 		// Calculate divisions
-		const G4double deltaPhi = totalDPhi / fDivisionCounts[1];
-		const G4double deltaTheta = totalDTheta / fDivisionCounts[2];
+		// const G4double deltaPhi = totalDPhi / fDivisionCounts[1];
+		// const G4double deltaTheta = totalDTheta / fDivisionCounts[2];
 
 		G4String divisionName;
 
@@ -180,7 +180,7 @@ G4VPhysicalVolume *TsBinnedSphere::Construct()
 
 			divisionName = fName + "_R_Division";
 
-			auto isFullSphere = totalDPhi == 360 * deg && totalDTheta == 180 * deg && fTotalRMin == 0;
+			// auto isFullSphere = totalDPhi == 360 * deg && totalDTheta == 180 * deg && fTotalRMin == 0;
 			for (auto iRadius = fDivisionCounts[0] - 1; iRadius >= 0; --iRadius)
 			{
 				if (fRadialBinning == RadialBinning::Equal)
@@ -204,6 +204,8 @@ G4VPhysicalVolume *TsBinnedSphere::Construct()
 		else
 		{
 			G4cerr << "!! Parameterization !!" << G4endl;
+			fPm->AbortSession(1);
+			/*
 			// Use Parameterisation for all three divisions
 			divisionName = fName + "_Division";
 			G4VSolid *divisionSolid = new G4Sphere(divisionName, fTotalRMin, fTotalRMax, totalSPhi, deltaPhi, fTotalSTheta, deltaTheta);
@@ -213,6 +215,7 @@ G4VPhysicalVolume *TsBinnedSphere::Construct()
 			divisionLog->SetVisAttributes(GetVisAttributes(""));
 
 			fScoringVolume = divisionLog;
+			*/
 		}
 	}
 
@@ -248,6 +251,7 @@ const std::vector<G4double> &TsBinnedSphere::GetRBinValues()
 		auto n = fPm->GetVectorLength(GetFullParmName("RBinValues"));
 		auto arr = fPm->GetDoubleVector(GetFullParmName("RBinValues"), "Length");
 		fRBinValues = std::vector<G4double>(arr, arr + n);
+		fRBinValueUnit = fPm->GetUnitOfParameter(GetFullParmName("RBinValues"));
 
 		if (n != fDivisionCounts[0])
 		{
@@ -282,7 +286,7 @@ const std::vector<G4double> &TsBinnedSphere::GetRBinValues()
 	}
 	else if (fRadialBinning == RadialBinning::Log)
 	{
-		G4double first, base;
+		G4double first = 0, base = 0;
 		if (fPm->ParameterExists(GetFullParmName("RBinFirstValue")))
 			first = fPm->GetDoubleParameter(GetFullParmName("RBinFirstValue"), "Length");
 		else
@@ -310,22 +314,37 @@ const std::vector<G4double> &TsBinnedSphere::GetRBinValues()
 		if (abortSession)
 			fPm->AbortSession(1);
 
-		fRBinValues = TsMath::LogspacePy(std::log(first) / std::log(base), std::log(fTotalRMax) / std::log(base), fDivisionCounts[0], base);
+		fRBinValues = TsMath::LogspacePy(std::log(first) / std::log(base), std::log(fTotalRMax) / std::log(base), fDivisionCounts[0], true, base);
+		fRBinValueUnit = fPm->GetUnitOfParameter(GetFullParmName("RBinFirstValue"));
 		// fRBinValues.clear();
 		// fRBinValues.reserve(fDivisionCounts[0]);
 		// std::generate_n(std::back_inserter(fRBinValues), fDivisionCounts[0], Logspace<G4double>(first, 10));
 	}
+	else // fRadialBinning == RadialBinning:Equal or None or whatever
+	{
+		fRBinValueUnit = fPm->GetUnitOfParameter(GetFullParmName("RMax"));
+	}
 	if (fVerbosity > 0 && fRadialBinning != RadialBinning::Equal)
 	{
 		G4cout << "Component " << GetName() << " is using " << (fRadialBinning == RadialBinning::Log ? "logarithmic" : "custom") << " radial binning." << G4endl;
-		G4cout << "Individual (RMin, RMax) in mm:" << G4endl;
-		auto rmin = fTotalRMin;
+		G4cout << "Individual (RMin, RMax) in " << fRBinValueUnit << ":" << G4endl;
+		G4cout << std::setprecision(14);
+		// auto rmin = fTotalRMin;
 		for (size_t i = 0; i < fRBinValues.size(); ++i)
 		{
 			G4cout << " i = " << std::setw(std::floor(std::log10(fRBinValues.size())) + 1) << i << " | ";
-			G4cout << std::scientific << "(" << rmin / mm << ", " << fRBinValues[i] / mm << ")" << G4endl;
-			rmin = fRBinValues[i];
+			G4cout << std::scientific << "(" << (i == 0 ? fTotalRMin : fRBinValues[i - 1]) / fPm->GetUnitValue(fRBinValueUnit) << ", " << fRBinValues[i] / fPm->GetUnitValue(fRBinValueUnit) << ")" << G4endl;
+			// rmin = fRBinValues[i];
 		}
+		G4cout << G4endl;
+		if (fVerbosity > 1 || (fPm->ParameterExists(GetFullParmName("PrintRBinValuesString")) && fPm->GetBooleanParameter(GetFullParmName("PrintRBinValuesString"))))
+		{
+			G4cout << "dv:" << GetFullParmName("RBinValues") << " = " << fRBinValues.size() << " ";
+			for (auto it = fRBinValues.cbegin(); it != fRBinValues.cend(); ++it)
+				G4cout << std::scientific << *it / fPm->GetUnitValue(fRBinValueUnit) << " ";
+			G4cout << fRBinValueUnit << G4endl;
+		}
+		G4cout << std::setprecision(6);
 	}
 	return fRBinValues;
 }

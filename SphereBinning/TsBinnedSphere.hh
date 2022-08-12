@@ -43,6 +43,7 @@ private:
 
 	RadialBinning fRadialBinning;
 	std::vector<G4double> fRBinValues;
+	G4String fRBinValueUnit;
 	G4double fDeltaR;
 
 	G4bool fConstructParameterized;
