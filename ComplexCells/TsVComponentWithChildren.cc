@@ -19,27 +19,6 @@ TsVComponentWithChildren::TsVComponentWithChildren(TsParameterManager* pM, TsExt
 	: TsVGeometryComponent(pM, eM, mM, gM, parentComponent, parentVolume, name)
 {}
 
-// G4VPhysicalVolume* TsVComponentWithChildren::Construct()
-// {
-// 	BeginConstruction();
-
-// 	fRadius = fPm->GetDoubleParameter(GetFullParmName("Radius"), "Length");
-
-// 	G4Orb* solid = new G4Orb(fName, fRadius);
-// 	fEnvelopeLog = CreateLogicalVolume(solid);
-// 	fEnvelopePhys = CreatePhysicalVolume(fEnvelopeLog);
-
-// 	if (fPm->ParameterExists(GetFullParmName("Spheres", "N")))
-// 		ConstructSphericalChildren("Spheres");
-
-// 	if (fPm->ParameterExists(GetFullParmName("Ellipsoids", "N")))
-// 		ConstructSphericalChildren("Ellipsoids");
-
-// 	InstantiateChildren(fEnvelopePhys);
-
-// 	return fEnvelopePhys;
-// }
-
 std::vector<G4VPhysicalVolume*> TsVComponentWithChildren::ConstructSphericalChildren(G4String name, G4double radialOffset)
 {
 	if (!fPm->ParameterExists(GetFullParmName(name, "N")))
