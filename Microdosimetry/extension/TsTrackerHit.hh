@@ -37,9 +37,9 @@
 #ifndef TsTrackerHit_h
 #define TsTrackerHit_h 1
 
-#include "G4VHit.hh"
 #include "G4THitsCollection.hh"
 #include "G4ThreeVector.hh"
+#include "G4VHit.hh"
 
 /// Tracker hit class
 ///
@@ -49,45 +49,45 @@
 
 class TsTrackerHit : public G4VHit
 {
-  public:
-    TsTrackerHit();
-    TsTrackerHit(const TsTrackerHit&);
-    virtual ~TsTrackerHit();
+public:
+	TsTrackerHit();
+	TsTrackerHit(const TsTrackerHit&);
+	virtual ~TsTrackerHit();
 
-    // operators
-    const TsTrackerHit& operator=(const TsTrackerHit&);
-    G4int operator==(const TsTrackerHit&) const;
+	// operators
+	const TsTrackerHit& operator=(const TsTrackerHit&);
+	G4int operator==(const TsTrackerHit&) const;
 
-    inline void* operator new(size_t);
-    inline void  operator delete(void*);
+	inline void* operator new(size_t);
+	inline void operator delete(void*);
 
-    // Set methods
-    void SetTrackID  (G4int track)      { fTrackID = track; };
-    void SetEdep     (G4double de)      { fEdep = de; };
-    void SetPos      (G4ThreeVector xyz){ fPos = xyz; };
+	// Set methods
+	void SetTrackID(G4int track) { fTrackID = track; };
+	void SetEdep(G4double de) { fEdep = de; };
+	void SetPos(G4ThreeVector xyz) { fPos = xyz; };
 
-    void SetIncidentEnergy (G4double e) {fIncidentEnergy = e;};
+	void SetIncidentEnergy(G4double e) { fIncidentEnergy = e; };
 
-    void SetParticleName(G4String name) {fParticleName = name;}
-    void SetParticleFlag(G4int flag) {fParticleFlag = flag;}
+	void SetParticleName(G4String name) { fParticleName = name; }
+	void SetParticleFlag(G4int flag) { fParticleFlag = flag; }
 
-    // Get methods
-    G4int GetTrackID() const     { return fTrackID; };
-    G4double GetEdep() const     { return fEdep; };
-    G4ThreeVector GetPos() const { return fPos; };
+	// Get methods
+	G4int GetTrackID() const { return fTrackID; };
+	G4double GetEdep() const { return fEdep; };
+	G4ThreeVector GetPos() const { return fPos; };
 
-    G4double GetIncidentEnergy() const {return fIncidentEnergy;};
-    G4String GetParticleName() const {return fParticleName;}
-    G4int    GetParticleFlag() const {return fParticleFlag;}
-  private:
+	G4double GetIncidentEnergy() const { return fIncidentEnergy; };
+	G4String GetParticleName() const { return fParticleName; }
+	G4int GetParticleFlag() const { return fParticleFlag; }
 
-      G4int         fTrackID;
-      G4double      fEdep;
-      G4ThreeVector fPos;
-      G4String      fParticleName;
-      G4int         fParticleFlag;
+private:
+	G4int fTrackID;
+	G4double fEdep;
+	G4ThreeVector fPos;
+	G4String fParticleName;
+	G4int fParticleFlag;
 
-      G4double      fIncidentEnergy;
+	G4double fIncidentEnergy;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -100,16 +100,16 @@ extern G4ThreadLocal G4Allocator<TsTrackerHit>* TsTrackerHitAllocator;
 
 inline void* TsTrackerHit::operator new(size_t)
 {
-  if(!TsTrackerHitAllocator)
-      TsTrackerHitAllocator = new G4Allocator<TsTrackerHit>;
-  return (void *) TsTrackerHitAllocator->MallocSingle();
+	if (!TsTrackerHitAllocator)
+		TsTrackerHitAllocator = new G4Allocator<TsTrackerHit>;
+	return (void*)TsTrackerHitAllocator->MallocSingle();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-inline void TsTrackerHit::operator delete(void *hit)
+inline void TsTrackerHit::operator delete(void* hit)
 {
-  TsTrackerHitAllocator->FreeSingle((TsTrackerHit*) hit);
+	TsTrackerHitAllocator->FreeSingle((TsTrackerHit*)hit);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -53,31 +53,30 @@
 class TsScoreRBE_TabulatedAlphaBeta : public TsVScoreRBE
 {
 public:
-    TsScoreRBE_TabulatedAlphaBeta(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager *eM,
-                G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer);
-    virtual ~TsScoreRBE_TabulatedAlphaBeta();
+	TsScoreRBE_TabulatedAlphaBeta(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
+								  G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer);
+	virtual ~TsScoreRBE_TabulatedAlphaBeta();
 
 protected:
-    virtual G4int CombineSubScorers();
-    virtual G4bool ProcessHits(G4Step*, G4TouchableHistory*) { return true; }
+	virtual G4int CombineSubScorers();
+	virtual G4bool ProcessHits(G4Step*, G4TouchableHistory*) { return true; }
 
-    TsVModelBiologicalEffect* ConstructModel(G4String cellLine);
+	TsVModelBiologicalEffect* ConstructModel(G4String cellLine);
 };
-
 
 class TsModelRBE_TabulatedAlphaBeta : public TsVModelBiologicalEffect
 {
 public:
-    TsModelRBE_TabulatedAlphaBeta(const G4String &cellLine, TsParameterManager* pM, const G4String &outputQuantity);
+	TsModelRBE_TabulatedAlphaBeta(const G4String& cellLine, TsParameterManager* pM, const G4String& outputQuantity);
 
-    virtual G4double GetRBE(G4double dose, G4double alpha, G4double beta);
-    virtual G4double GetAlpha(G4double dose, G4double doseAlpha);
-    virtual G4double GetBeta(G4double dose, G4double doseSqrtBeta);
-    virtual G4double GetSurvivalFraction(G4double dose, G4double alpha, G4double beta);
+	virtual G4double GetRBE(G4double dose, G4double alpha, G4double beta);
+	virtual G4double GetAlpha(G4double dose, G4double doseAlpha);
+	virtual G4double GetBeta(G4double dose, G4double doseSqrtBeta);
+	virtual G4double GetSurvivalFraction(G4double dose, G4double alpha, G4double beta);
 
 protected:
-    G4double fAlphax;
-    G4double fBetax;
+	G4double fAlphax;
+	G4double fBetax;
 };
 
 #endif

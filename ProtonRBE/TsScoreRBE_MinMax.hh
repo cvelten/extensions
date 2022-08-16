@@ -53,37 +53,36 @@
 class TsScoreRBE_MinMax : public TsVScoreRBE_DoseLET
 {
 public:
-    TsScoreRBE_MinMax(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
-                G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer=false);
-    virtual ~TsScoreRBE_MinMax();
+	TsScoreRBE_MinMax(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
+					  G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer = false);
+	virtual ~TsScoreRBE_MinMax();
 
 protected:
-    virtual TsVModelBiologicalEffect* ConstructModel(G4String cellLine);
+	virtual TsVModelBiologicalEffect* ConstructModel(G4String cellLine);
 };
-
 
 class TsModelRBE_MinMax : public TsVModelRBE_DoseLET
 {
 public:
-    TsModelRBE_MinMax() {;}
-    TsModelRBE_MinMax(const G4String &cellLine, TsParameterManager* pM, const G4String &outputQuantity);
+	TsModelRBE_MinMax() { ; }
+	TsModelRBE_MinMax(const G4String& cellLine, TsParameterManager* pM, const G4String& outputQuantity);
 
-    virtual G4double GetRBEmax(G4double LETd);
-    virtual G4double GetRBEmin(G4double LETd);
+	virtual G4double GetRBEmax(G4double LETd);
+	virtual G4double GetRBEmin(G4double LETd);
 
-    G4double GetRBE(G4double dose, G4double LETd);
-    G4double GetAlpha(G4double LETd);
-    G4double GetBeta(G4double LETd);
+	G4double GetRBE(G4double dose, G4double LETd);
+	G4double GetAlpha(G4double LETd);
+	G4double GetBeta(G4double LETd);
 
 protected:
-    G4double fAlphaBetax;
-    G4double fAlphax;
-    G4double fBetax;
+	G4double fAlphaBetax;
+	G4double fAlphax;
+	G4double fBetax;
 
-    G4double fRBEminOffset;
-    G4double fRBEminSlope;
-    G4double fRBEmaxOffset;
-    G4double fRBEmaxSlope;
+	G4double fRBEminOffset;
+	G4double fRBEminSlope;
+	G4double fRBEmaxOffset;
+	G4double fRBEmaxSlope;
 };
 
 #endif

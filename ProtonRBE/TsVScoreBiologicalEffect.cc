@@ -51,71 +51,72 @@
 #include "TsParameterManager.hh"
 
 TsVScoreBiologicalEffect::TsVScoreBiologicalEffect(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
-                         G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer)
-: TsVBinnedScorer(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
-{;}
-
+												   G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer)
+	: TsVBinnedScorer(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
+{
+	;
+}
 
 TsVScoreBiologicalEffect::~TsVScoreBiologicalEffect()
-{;}
-
+{
+	;
+}
 
 void TsVScoreBiologicalEffect::PostConstructor()
 {
-    TsVBinnedScorer::PostConstructor();
+	TsVBinnedScorer::PostConstructor();
 
-    G4String* cellLines = fPm->GetStringVector(GetFullParmName("CellLines"));
-    G4int cellLinesLength = fPm->GetVectorLength(GetFullParmName("CellLines"));
+	G4String* cellLines = fPm->GetStringVector(GetFullParmName("CellLines"));
+	G4int cellLinesLength = fPm->GetVectorLength(GetFullParmName("CellLines"));
 
-    G4String* structureNames = NULL;
-    G4int structureNamesLength = 0;
-    if (fPm->ParameterExists(GetFullParmName("RTStructures"))) {
-        structureNames = fPm->GetStringVector(GetFullParmName("RTStructures"));
-        structureNamesLength = fPm->GetVectorLength(GetFullParmName("RTStructures"));
-    }
+	G4String* structureNames = NULL;
+	G4int structureNamesLength = 0;
+	if (fPm->ParameterExists(GetFullParmName("RTStructures"))) {
+		structureNames = fPm->GetStringVector(GetFullParmName("RTStructures"));
+		structureNamesLength = fPm->GetVectorLength(GetFullParmName("RTStructures"));
+	}
 
-    if (cellLinesLength != structureNamesLength+1) {
-        G4cerr << "Topas is exiting due to a serious error in scoring setup." << G4endl;
-        G4cerr << "Scorer \"" << GetName() << "\" has the wrong number of" << G4endl;
-        G4cerr << "CellLines and/or RTStructures." << G4endl;
-        exit(1);
-    }
+	if (cellLinesLength != structureNamesLength + 1) {
+		G4cerr << "Topas is exiting due to a serious error in scoring setup." << G4endl;
+		G4cerr << "Scorer \"" << GetName() << "\" has the wrong number of" << G4endl;
+		G4cerr << "CellLines and/or RTStructures." << G4endl;
+		exit(1);
+	}
 
-    // Construct a biological effect model for each cell line
-    for (G4int i = 0; i < cellLinesLength; i++)
-        if (fModelsByCellLine.find(cellLines[i]) == fModelsByCellLine.end())
-            fModelsByCellLine[cellLines[i]] = ConstructModel(cellLines[i]);
+	// Construct a biological effect model for each cell line
+	for (G4int i = 0; i < cellLinesLength; i++)
+		if (fModelsByCellLine.find(cellLines[i]) == fModelsByCellLine.end())
+			fModelsByCellLine[cellLines[i]] = ConstructModel(cellLines[i]);
 
-    // Associate RTStructures with biological effect models
-    for (G4int i = 0; i < structureNamesLength; i++) {
-        G4int id = fComponent->GetStructureID(structureNames[i]);
-        if (id == -1) {
-            G4cerr << "Topas is exiting due to a serious error in scoring setup." << G4endl;
-            G4cerr << "Component: " << fComponent->GetNameWithCopyId() << " does not have stucture: " << structureNames[i] << G4endl;
-            exit(1);
-        }
-        fRTStructureIDs.push_back(id);
-        fRTStructureNames.push_back(structureNames[i]);
-        fRTStructureCellLines.push_back(cellLines[i]);
-        fModelsByStructureID[id] = fModelsByCellLine[cellLines[i]];
-    }
+	// Associate RTStructures with biological effect models
+	for (G4int i = 0; i < structureNamesLength; i++) {
+		G4int id = fComponent->GetStructureID(structureNames[i]);
+		if (id == -1) {
+			G4cerr << "Topas is exiting due to a serious error in scoring setup." << G4endl;
+			G4cerr << "Component: " << fComponent->GetNameWithCopyId() << " does not have stucture: " << structureNames[i] << G4endl;
+			exit(1);
+		}
+		fRTStructureIDs.push_back(id);
+		fRTStructureNames.push_back(structureNames[i]);
+		fRTStructureCellLines.push_back(cellLines[i]);
+		fModelsByStructureID[id] = fModelsByCellLine[cellLines[i]];
+	}
 
-    // Set default cell line
-    fDefaultCellLine = cellLines[cellLinesLength-1];
-    fModelsByStructureID[-1] = fModelsByCellLine[cellLines[cellLinesLength-1]];
+	// Set default cell line
+	fDefaultCellLine = cellLines[cellLinesLength - 1];
+	fModelsByStructureID[-1] = fModelsByCellLine[cellLines[cellLinesLength - 1]];
 }
-
 
 TsVModelBiologicalEffect* TsVScoreBiologicalEffect::GetModelForVoxel(G4int index)
 {
-    G4int structureID = -1; // default model
+	G4int structureID = -1; // default model
 
-    // reverse iterate through structures, to give priority to earlier structures
-    for (std::vector<G4int>::reverse_iterator it_id = fRTStructureIDs.rbegin(); it_id != fRTStructureIDs.rend(); ++it_id)
-    {
-        if (fComponent->IsInNamedStructure(*it_id, index))
-            structureID = *it_id;
-    }
+	// reverse iterate through structures, to give priority to earlier structures
+	for (std::vector<G4int>::reverse_iterator it_id = fRTStructureIDs.rbegin(); it_id != fRTStructureIDs.rend(); ++it_id)
+	{
+		if (fComponent->IsInNamedStructure(*it_id, index))
+			structureID = *it_id;
+	}
 
-    return fModelsByStructureID[structureID];
+	return fModelsByStructureID[structureID];
 }

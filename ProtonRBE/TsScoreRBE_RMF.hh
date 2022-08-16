@@ -53,34 +53,33 @@
 class TsScoreRBE_RMF : public TsVScoreRBE
 {
 public:
-    TsScoreRBE_RMF(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
-                G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer=false);
-    virtual ~TsScoreRBE_RMF();
+	TsScoreRBE_RMF(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
+				   G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer = false);
+	virtual ~TsScoreRBE_RMF();
 
 private:
-    G4int CombineSubScorers();
-    virtual G4bool ProcessHits(G4Step*, G4TouchableHistory*) { return true; }
+	G4int CombineSubScorers();
+	virtual G4bool ProcessHits(G4Step*, G4TouchableHistory*) { return true; }
 
 private:
-    TsVModelBiologicalEffect* ConstructModel(G4String cellLine);
+	TsVModelBiologicalEffect* ConstructModel(G4String cellLine);
 };
-
 
 class TsModelRBE_RMF : public TsVModelBiologicalEffect
 {
 public:
-    TsModelRBE_RMF(const G4String &cellLine, TsParameterManager* pM, const G4String &outputQuantity);
+	TsModelRBE_RMF(const G4String& cellLine, TsParameterManager* pM, const G4String& outputQuantity);
 
-    G4double GetRBE(G4double dose, G4double LETd, G4double RBE_DSB);
-    G4double GetAlpha(G4double LETd, G4double RBE_DSB);
-    G4double GetBeta(G4double RBE_DSB);
-    G4double GetSurvivalFraction(G4double dose, G4double LETd, G4double RBE_DSB);
+	G4double GetRBE(G4double dose, G4double LETd, G4double RBE_DSB);
+	G4double GetAlpha(G4double LETd, G4double RBE_DSB);
+	G4double GetBeta(G4double RBE_DSB);
+	G4double GetSurvivalFraction(G4double dose, G4double LETd, G4double RBE_DSB);
 
 protected:
-    G4double fAlphax;
-    G4double fBetax;
-    G4double fNucleusDiameter;
-    G4double fLETx;
+	G4double fAlphax;
+	G4double fBetax;
+	G4double fNucleusDiameter;
+	G4double fLETx;
 };
 
 #endif

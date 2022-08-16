@@ -48,36 +48,35 @@
 #ifndef TsScoreDoseAlpha_Tabulated_hh
 #define TsScoreDoseAlpha_Tabulated_hh
 
-#include "TsVScoreBiologicalEffect.hh"
-#include "G4ParticleTable.hh"
 #include "G4ParticleDefinition.hh"
+#include "G4ParticleTable.hh"
+#include "TsVScoreBiologicalEffect.hh"
 
 class TsScoreDoseAlpha_Tabulated : public TsVScoreBiologicalEffect
 {
 public:
-    TsScoreDoseAlpha_Tabulated(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
-                G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer=false);
-    virtual ~TsScoreDoseAlpha_Tabulated();
+	TsScoreDoseAlpha_Tabulated(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
+							   G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer = false);
+	virtual ~TsScoreDoseAlpha_Tabulated();
 
-    G4bool ProcessHits(G4Step*, G4TouchableHistory*);
+	G4bool ProcessHits(G4Step*, G4TouchableHistory*);
 
 private:
-    TsVModelBiologicalEffect* ConstructModel(G4String cellLine);
+	TsVModelBiologicalEffect* ConstructModel(G4String cellLine);
 };
-
 
 class TsModelAlpha_Tabulated : public TsVModelBiologicalEffect
 {
 public:
-    TsModelAlpha_Tabulated(const G4String &cellLine, const G4String &modelName, TsParameterManager* pM);
+	TsModelAlpha_Tabulated(const G4String& cellLine, const G4String& modelName, TsParameterManager* pM);
 
-    G4double InterpolateAlpha(G4int particleZ, G4double kineticEnergyPerNucleon);
+	G4double InterpolateAlpha(G4int particleZ, G4double kineticEnergyPerNucleon);
 
 private:
-    G4int fNumberOfEnergyBins;
-    G4int fNumberOfParticleNames;
-    std::map<G4int, G4double* > fAlpha; // key: particle Z, value: alpha binned by energy
-    G4double* fKineticEnergyPerNucleon; // Energy bins for alpha and beta
+	G4int fNumberOfEnergyBins;
+	G4int fNumberOfParticleNames;
+	std::map<G4int, G4double*> fAlpha;	// key: particle Z, value: alpha binned by energy
+	G4double* fKineticEnergyPerNucleon; // Energy bins for alpha and beta
 };
 
 #endif

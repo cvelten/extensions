@@ -53,25 +53,24 @@
 class TsVScoreRBE_DoseLET : public TsVScoreRBE
 {
 public:
-    TsVScoreRBE_DoseLET(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager *eM,
-                G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer);
-    virtual ~TsVScoreRBE_DoseLET();
+	TsVScoreRBE_DoseLET(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
+						G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer);
+	virtual ~TsVScoreRBE_DoseLET();
 
 protected:
-    virtual G4int CombineSubScorers();
-    virtual G4bool ProcessHits(G4Step*, G4TouchableHistory*) { return true; }
+	virtual G4int CombineSubScorers();
+	virtual G4bool ProcessHits(G4Step*, G4TouchableHistory*) { return true; }
 };
-
 
 class TsVModelRBE_DoseLET : public TsVModelBiologicalEffect
 {
 public:
-    TsVModelRBE_DoseLET() {;}
+	TsVModelRBE_DoseLET() { ; }
 
-    virtual G4double GetRBE(G4double dose, G4double LETd) = 0;
-    virtual G4double GetAlpha(G4double LETd) = 0;
-    virtual G4double GetBeta(G4double LETd) = 0;
-    virtual G4double GetSurvivalFraction(G4double dose, G4double alpha, G4double beta);
+	virtual G4double GetRBE(G4double dose, G4double LETd) = 0;
+	virtual G4double GetAlpha(G4double LETd) = 0;
+	virtual G4double GetBeta(G4double LETd) = 0;
+	virtual G4double GetSurvivalFraction(G4double dose, G4double alpha, G4double beta);
 };
 
 #endif

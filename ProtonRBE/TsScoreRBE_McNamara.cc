@@ -51,38 +51,39 @@
 #include "TsParameterManager.hh"
 
 TsScoreRBE_McNamara::TsScoreRBE_McNamara(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM, G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer)
-: TsScoreRBE_MinMax(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
-{;}
-
+	: TsScoreRBE_MinMax(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
+{
+	;
+}
 
 TsScoreRBE_McNamara::~TsScoreRBE_McNamara()
-{;}
-
+{
+	;
+}
 
 TsVModelBiologicalEffect* TsScoreRBE_McNamara::ConstructModel(G4String cellLine)
 {
-    return new TsModelRBE_McNamara(cellLine, fPm, fOutputQuantity);
+	return new TsModelRBE_McNamara(cellLine, fPm, fOutputQuantity);
 }
 
-
-TsModelRBE_McNamara::TsModelRBE_McNamara(const G4String &cellLine, TsParameterManager* pM, const G4String &outputQuantity)
-: TsModelRBE_MinMax()
+TsModelRBE_McNamara::TsModelRBE_McNamara(const G4String& cellLine, TsParameterManager* pM, const G4String& outputQuantity)
+	: TsModelRBE_MinMax()
 {
-    fRBEmaxOffset = 0.99064;
-    fRBEmaxSlope  = 0.35605 * gray/(keV/um);
-    fRBEminOffset = 1.1012;
-    fRBEminSlope  = -0.0038703 * 1/(keV/um);
+	fRBEmaxOffset = 0.99064;
+	fRBEmaxSlope = 0.35605 * gray / (keV / um);
+	fRBEminOffset = 1.1012;
+	fRBEminSlope = -0.0038703 * 1 / (keV / um);
 
-    G4String name = "Sc/" + cellLine + "/AlphaBetaRatiox";
-    fAlphaBetax = pM->GetDoubleParameter(name,"Dose");
+	G4String name = "Sc/" + cellLine + "/AlphaBetaRatiox";
+	fAlphaBetax = pM->GetDoubleParameter(name, "Dose");
 
-    if (outputQuantity == "alpha" || outputQuantity == "survivalfraction") {
-        name = "Sc/" + cellLine + "/Alphax";
-        fAlphax = pM->GetDoubleParameter(name, "perDose");
-    }
+	if (outputQuantity == "alpha" || outputQuantity == "survivalfraction") {
+		name = "Sc/" + cellLine + "/Alphax";
+		fAlphax = pM->GetDoubleParameter(name, "perDose");
+	}
 
-    if (outputQuantity == "beta" || outputQuantity == "survivalfraction") {
-        name = "Sc/" + cellLine + "/Betax";
-        fBetax = pM->GetDoubleParameter(name, "perDoseSquare");
-    }
+	if (outputQuantity == "beta" || outputQuantity == "survivalfraction") {
+		name = "Sc/" + cellLine + "/Betax";
+		fBetax = pM->GetDoubleParameter(name, "perDoseSquare");
+	}
 }

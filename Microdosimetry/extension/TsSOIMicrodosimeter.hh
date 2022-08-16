@@ -50,12 +50,11 @@
 
 #include "TsVGeometryComponent.hh"
 
-
 class TsSOIMicrodosimeter : public TsVGeometryComponent
 {
 public:
 	TsSOIMicrodosimeter(TsParameterManager* pM, TsExtensionManager* eM, TsMaterialManager* mM, TsGeometryManager* gM,
-		   TsVGeometryComponent* parentComponent, G4VPhysicalVolume* parentVolume, G4String& name);
+						TsVGeometryComponent* parentComponent, G4VPhysicalVolume* parentVolume, G4String& name);
 	~TsSOIMicrodosimeter();
 
 	G4VPhysicalVolume* Construct();

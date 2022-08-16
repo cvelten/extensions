@@ -50,7 +50,6 @@
 //  To be used with Patient_GetSPEbin.txt, EachHUonce.dat, and HUtoMaterialSchneiderNoCorrection.txt
 //  Uses 100 MeV protons as reference to calculate stopping power ratios
 
-
 #include "GetStoppingPowerRatiosWithEnergyBinning.hh"
 #include "TsParameterManager.hh"
 //#include "TsMaterialManager.hh"
@@ -62,58 +61,56 @@
 #include "G4SystemOfUnits.hh"
 
 GetStoppingPowerRatiosWithEnergyBinning::GetStoppingPowerRatiosWithEnergyBinning(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM, G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer)
-:TsVBinnedScorer(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
+	: TsVBinnedScorer(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
 {
 
-    SetUnit("Gy");
+	SetUnit("Gy");
 
 	fWater = GetMaterial("G4_WATER");
 
 	fProton = G4Proton::ProtonDefinition();
 
-    if (fPm->ParameterExists(GetFullParmName("OutputFileName")))
-		fFileName =  fPm->GetStringParameter(GetFullParmName("OutputFileName")) + ".csv";
-    else {
-        G4cout << "Topas is exiting due to missing parameter." << G4endl;
+	if (fPm->ParameterExists(GetFullParmName("OutputFileName")))
+		fFileName = fPm->GetStringParameter(GetFullParmName("OutputFileName")) + ".csv";
+	else {
+		G4cout << "Topas is exiting due to missing parameter." << G4endl;
 		G4cout << "Scorer " << GetName() << " needs a defined OutputFileName" << G4endl;
-        exit(1);
-    }
+		exit(1);
+	}
 
-    fFile.open(fFileName,std::ios::out);
-    fFlag=0;
+	fFile.open(fFileName, std::ios::out);
+	fFlag = 0;
 }
 
-
-GetStoppingPowerRatiosWithEnergyBinning::~GetStoppingPowerRatiosWithEnergyBinning() {
-    fFile.close();
+GetStoppingPowerRatiosWithEnergyBinning::~GetStoppingPowerRatiosWithEnergyBinning()
+{
+	fFile.close();
 }
 
-
-G4bool GetStoppingPowerRatiosWithEnergyBinning::ProcessHits(G4Step* aStep,G4TouchableHistory*)
+G4bool GetStoppingPowerRatiosWithEnergyBinning::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 {
 	if (!fIsActive) {
 		fSkippedWhileInactive++;
 		return false;
 	}
 
-	if (fFlag==0){
-        std::vector<G4Material *>* table = aStep->GetPreStepPoint()->GetMaterial()->GetMaterialTable();
-        G4int numberOfMaterials = aStep->GetPreStepPoint()->GetMaterial()->GetNumberOfMaterials();
+	if (fFlag == 0) {
+		std::vector<G4Material*>* table = aStep->GetPreStepPoint()->GetMaterial()->GetMaterialTable();
+		G4int numberOfMaterials = aStep->GetPreStepPoint()->GetMaterial()->GetNumberOfMaterials();
 
-        fFile << "Material Name, HU dEdx , Water dEdx , Relative dEdx (HU/Water) " << std::endl;
+		fFile << "Material Name, HU dEdx , Water dEdx , Relative dEdx (HU/Water) " << std::endl;
 
-        for (int i=0; i<numberOfMaterials; i++){
-            for (int j=0; j<700; j++){
-                G4Material* material = table->at(i);
-                G4double energy = 0.5*(1+j)*MeV;
-                G4double materialStoppingPower = fEmCalculator.ComputeTotalDEDX(energy, fProton, material);
-                G4double waterStoppingPower = fEmCalculator.ComputeTotalDEDX(energy, fProton, fWater);
+		for (int i = 0; i < numberOfMaterials; i++) {
+			for (int j = 0; j < 700; j++) {
+				G4Material* material = table->at(i);
+				G4double energy = 0.5 * (1 + j) * MeV;
+				G4double materialStoppingPower = fEmCalculator.ComputeTotalDEDX(energy, fProton, material);
+				G4double waterStoppingPower = fEmCalculator.ComputeTotalDEDX(energy, fProton, fWater);
 
-                fFile << material->GetName() << " , " << materialStoppingPower << " , " << waterStoppingPower << " , " << materialStoppingPower/waterStoppingPower << " , " << energy << " MeV " <<  std::endl;
-            }
-        }
-    }
-    fFlag++;
+				fFile << material->GetName() << " , " << materialStoppingPower << " , " << waterStoppingPower << " , " << materialStoppingPower / waterStoppingPower << " , " << energy << " MeV " << std::endl;
+			}
+		}
+	}
+	fFlag++;
 	return false;
 }
-

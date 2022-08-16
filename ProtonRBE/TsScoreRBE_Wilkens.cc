@@ -52,53 +52,51 @@
 #include <math.h>
 
 TsScoreRBE_Wilkens::TsScoreRBE_Wilkens(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM, G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer)
-: TsVScoreRBE_DoseLET(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
-{;}
-
+	: TsVScoreRBE_DoseLET(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
+{
+	;
+}
 
 TsScoreRBE_Wilkens::~TsScoreRBE_Wilkens()
-{;}
-
+{
+	;
+}
 
 TsVModelBiologicalEffect* TsScoreRBE_Wilkens::ConstructModel(G4String cellLine)
 {
-    return new TsModelRBE_Wilkens(cellLine, fPm, fOutputQuantity);
+	return new TsModelRBE_Wilkens(cellLine, fPm, fOutputQuantity);
 }
 
-
-TsModelRBE_Wilkens::TsModelRBE_Wilkens(const G4String &cellLine, TsParameterManager* pM, const G4String &outputQuantity)
+TsModelRBE_Wilkens::TsModelRBE_Wilkens(const G4String& cellLine, TsParameterManager* pM, const G4String& outputQuantity)
 {
-    fAlpha0 = 0.1 * (1./gray);
-    fLambda = 0.02 * um/keV/gray;
+	fAlpha0 = 0.1 * (1. / gray);
+	fLambda = 0.02 * um / keV / gray;
 
-    if (outputQuantity == "rbe" || outputQuantity == "survivalfraction" || outputQuantity == "rbe_x_dose") {
-        G4String name = "Sc/" + cellLine + "/Alphax";
-        fAlphax = pM->GetDoubleParameter(name, "perDose");
-    }
+	if (outputQuantity == "rbe" || outputQuantity == "survivalfraction" || outputQuantity == "rbe_x_dose") {
+		G4String name = "Sc/" + cellLine + "/Alphax";
+		fAlphax = pM->GetDoubleParameter(name, "perDose");
+	}
 
-    if (outputQuantity == "rbe" || outputQuantity == "survivalfraction" || outputQuantity == "rbe_x_dose" || outputQuantity == "beta") {
-        G4String name = "Sc/" + cellLine + "/Betax";
-        fBetax = pM->GetDoubleParameter(name, "perDoseSquare");
-    }
+	if (outputQuantity == "rbe" || outputQuantity == "survivalfraction" || outputQuantity == "rbe_x_dose" || outputQuantity == "beta") {
+		G4String name = "Sc/" + cellLine + "/Betax";
+		fBetax = pM->GetDoubleParameter(name, "perDoseSquare");
+	}
 }
-
 
 G4double TsModelRBE_Wilkens::GetRBE(G4double dose, G4double LETd)
 {
-    if (dose == 0)
-        return 0;
+	if (dose == 0)
+		return 0;
 
-    return (sqrt(fAlphax*fAlphax + 4*fBetax*dose * (GetAlpha(LETd) + GetBeta(LETd)*dose)) - fAlphax) / (2*fBetax*dose);
+	return (sqrt(fAlphax * fAlphax + 4 * fBetax * dose * (GetAlpha(LETd) + GetBeta(LETd) * dose)) - fAlphax) / (2 * fBetax * dose);
 }
-
 
 G4double TsModelRBE_Wilkens::GetAlpha(G4double LETd)
 {
-    return fAlpha0 + (fLambda * LETd);
+	return fAlpha0 + (fLambda * LETd);
 }
-
 
 G4double TsModelRBE_Wilkens::GetBeta(G4double)
 {
-    return fBetax;
+	return fBetax;
 }

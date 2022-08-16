@@ -61,57 +61,55 @@
 #include "G4SystemOfUnits.hh"
 
 TsScoreHUCorrection::TsScoreHUCorrection(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM, G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer)
-:TsVBinnedScorer(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
+	: TsVBinnedScorer(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
 {
 
-    SetUnit("Gy");
+	SetUnit("Gy");
 
 	fWater = GetMaterial("G4_WATER");
 
 	fProton = G4Proton::ProtonDefinition();
 
-    if (fPm->ParameterExists(GetFullParmName("OutputFileName")))
-		fFileName =  fPm->GetStringParameter(GetFullParmName("OutputFileName")) + ".csv";
-    else {
-        G4cout << "Topas is exiting due to missing parameter." << G4endl;
+	if (fPm->ParameterExists(GetFullParmName("OutputFileName")))
+		fFileName = fPm->GetStringParameter(GetFullParmName("OutputFileName")) + ".csv";
+	else {
+		G4cout << "Topas is exiting due to missing parameter." << G4endl;
 		G4cout << "Scorer " << GetName() << " needs a defined OutputFileName" << G4endl;
-        exit(1);
-    }
+		exit(1);
+	}
 
-    fFile.open(fFileName,std::ios::out);
-    fFlag=0;
+	fFile.open(fFileName, std::ios::out);
+	fFlag = 0;
 }
 
-
-TsScoreHUCorrection::~TsScoreHUCorrection() {
-    fFile.close();
+TsScoreHUCorrection::~TsScoreHUCorrection()
+{
+	fFile.close();
 }
 
-
-G4bool TsScoreHUCorrection::ProcessHits(G4Step* aStep,G4TouchableHistory*)
+G4bool TsScoreHUCorrection::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 {
 	if (!fIsActive) {
 		fSkippedWhileInactive++;
 		return false;
 	}
 
-	if (fFlag==0){
-        std::vector<G4Material *>* table = aStep->GetPreStepPoint()->GetMaterial()->GetMaterialTable();
-        G4int numberOfMaterials = aStep->GetPreStepPoint()->GetMaterial()->GetNumberOfMaterials();
+	if (fFlag == 0) {
+		std::vector<G4Material*>* table = aStep->GetPreStepPoint()->GetMaterial()->GetMaterialTable();
+		G4int numberOfMaterials = aStep->GetPreStepPoint()->GetMaterial()->GetNumberOfMaterials();
 
-        G4double energy = 100*MeV;
-        fFile << "Material Name, HU dEdx , Water dEdx , Relative dEdx (HU/Water) " << std::endl;
+		G4double energy = 100 * MeV;
+		fFile << "Material Name, HU dEdx , Water dEdx , Relative dEdx (HU/Water) " << std::endl;
 
-        for (int i=0; i<numberOfMaterials; i++){
-            G4Material* material = table->at(i);
-            G4double materialStoppingPower = fEmCalculator.ComputeTotalDEDX(energy, fProton, material);
-            G4double waterStoppingPower = fEmCalculator.ComputeTotalDEDX(energy, fProton, fWater);
+		for (int i = 0; i < numberOfMaterials; i++) {
+			G4Material* material = table->at(i);
+			G4double materialStoppingPower = fEmCalculator.ComputeTotalDEDX(energy, fProton, material);
+			G4double waterStoppingPower = fEmCalculator.ComputeTotalDEDX(energy, fProton, fWater);
 
-            // for 100 MeV ratios:
-            fFile << material->GetName() << " , " << materialStoppingPower << " , " << waterStoppingPower << " , " << materialStoppingPower/waterStoppingPower << std::endl;
-        }
-    }
-    fFlag++;
+			// for 100 MeV ratios:
+			fFile << material->GetName() << " , " << materialStoppingPower << " , " << waterStoppingPower << " , " << materialStoppingPower / waterStoppingPower << std::endl;
+		}
+	}
+	fFlag++;
 	return false;
 }
-

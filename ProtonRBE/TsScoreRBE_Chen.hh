@@ -53,31 +53,30 @@
 class TsScoreRBE_Chen : public TsVScoreRBE_DoseLET
 {
 public:
-    TsScoreRBE_Chen(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
-                G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer=false);
-    virtual ~TsScoreRBE_Chen();
+	TsScoreRBE_Chen(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
+					G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer = false);
+	virtual ~TsScoreRBE_Chen();
 
 protected:
-    TsVModelBiologicalEffect* ConstructModel(G4String cellLine);
+	TsVModelBiologicalEffect* ConstructModel(G4String cellLine);
 };
-
 
 class TsModelRBE_Chen : public TsVModelRBE_DoseLET
 {
 public:
-    TsModelRBE_Chen(const G4String &cellLine, TsParameterManager* pM, const G4String &outputQuantity);
+	TsModelRBE_Chen(const G4String& cellLine, TsParameterManager* pM, const G4String& outputQuantity);
 
-    G4double GetRBE(G4double dose, G4double LETd);
-    G4double GetAlpha(G4double LETd);
-    G4double GetBeta(G4double LETd);
+	G4double GetRBE(G4double dose, G4double LETd);
+	G4double GetAlpha(G4double LETd);
+	G4double GetBeta(G4double LETd);
 
 protected:
-    G4double fAlphax;
-    G4double fBetax;
+	G4double fAlphax;
+	G4double fBetax;
 
-    G4double fAlpha0;
-    G4double fLambda1;
-    G4double fLambda2;
+	G4double fAlpha0;
+	G4double fLambda1;
+	G4double fLambda2;
 };
 
 #endif

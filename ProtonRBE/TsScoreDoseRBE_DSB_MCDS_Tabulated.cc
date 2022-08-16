@@ -46,105 +46,102 @@
 // ********************************************************************
 //
 
-#include "TsParameterManager.hh"
 #include "TsScoreDoseRBE_DSB_MCDS_Tabulated.hh"
+#include "TsParameterManager.hh"
 
-#include "G4ParticleTable.hh"
 #include "G4ParticleDefinition.hh"
+#include "G4ParticleTable.hh"
 #include <math.h>
 
 TsScoreDoseRBE_DSB_MCDS_Tabulated::TsScoreDoseRBE_DSB_MCDS_Tabulated(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM, G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer)
-: TsVScoreBiologicalEffect(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
+	: TsVScoreBiologicalEffect(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
 {
-    SetUnit("Gy");
+	SetUnit("Gy");
 
-    G4String particleName = fPm->GetStringParameter(GetFullParmName("GetRBERMFForParticleNamed"));
-    fParticleDefinition = G4ParticleTable::GetParticleTable()->FindParticle(particleName);
+	G4String particleName = fPm->GetStringParameter(GetFullParmName("GetRBERMFForParticleNamed"));
+	fParticleDefinition = G4ParticleTable::GetParticleTable()->FindParticle(particleName);
 
-    // If didn't find the particle name, see if it exists in lower case
-    if (!fParticleDefinition) {
-        G4String particleNameLower = particleName;
-        particleNameLower.toLower();
-        fParticleDefinition = G4ParticleTable::GetParticleTable()->FindParticle(particleNameLower);
+	// If didn't find the particle name, see if it exists in lower case
+	if (!fParticleDefinition) {
+		G4String particleNameLower = particleName;
+		particleNameLower.toLower();
+		fParticleDefinition = G4ParticleTable::GetParticleTable()->FindParticle(particleNameLower);
 
-        if (!fParticleDefinition) {
-            G4cerr << "Topas is exiting due to a serious error in scoring setup." << G4endl;
-            G4cerr << GetFullParmName("GetLETForParticleNamed") << " refers to an unknown particle name: " << particleName << G4endl;
-            exit(1);
-        }
-    }
+		if (!fParticleDefinition) {
+			G4cerr << "Topas is exiting due to a serious error in scoring setup." << G4endl;
+			G4cerr << GetFullParmName("GetLETForParticleNamed") << " refers to an unknown particle name: " << particleName << G4endl;
+			exit(1);
+		}
+	}
 }
 
-
 TsScoreDoseRBE_DSB_MCDS_Tabulated::~TsScoreDoseRBE_DSB_MCDS_Tabulated()
-{;}
-
+{
+	;
+}
 
 TsVModelBiologicalEffect* TsScoreDoseRBE_DSB_MCDS_Tabulated::ConstructModel(G4String cellLine)
 {
-    return new TsModelRBE_DSB_MCDS_Tabulated(cellLine, fPm);
+	return new TsModelRBE_DSB_MCDS_Tabulated(cellLine, fPm);
 }
-
 
 G4bool TsScoreDoseRBE_DSB_MCDS_Tabulated::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 {
-    if (!fIsActive) {
-        fSkippedWhileInactive++;
-        return false;
-    }
+	if (!fIsActive) {
+		fSkippedWhileInactive++;
+		return false;
+	}
 
-    if (aStep->GetTrack()->GetParticleDefinition()!=fParticleDefinition)
-        return false;
+	if (aStep->GetTrack()->GetParticleDefinition() != fParticleDefinition)
+		return false;
 
-    G4double edep = aStep->GetTotalEnergyDeposit();
-    if (edep > 0.) {
-        ResolveSolid(aStep);
-        G4int index = fComponent->GetIndex((G4Step*)aStep);
-        TsModelRBE_DSB_MCDS_Tabulated* model = dynamic_cast<TsModelRBE_DSB_MCDS_Tabulated*>(GetModelForVoxel(index));
+	G4double edep = aStep->GetTotalEnergyDeposit();
+	if (edep > 0.) {
+		ResolveSolid(aStep);
+		G4int index = fComponent->GetIndex((G4Step*)aStep);
+		TsModelRBE_DSB_MCDS_Tabulated* model = dynamic_cast<TsModelRBE_DSB_MCDS_Tabulated*>(GetModelForVoxel(index));
 
-        G4double density = aStep->GetPreStepPoint()->GetMaterial()->GetDensity();
-        G4int particleMass = aStep->GetTrack()->GetDefinition()->GetAtomicMass();
-        G4double kineticEnergyPerNucleon = aStep->GetPreStepPoint()->GetKineticEnergy() / particleMass;
+		G4double density = aStep->GetPreStepPoint()->GetMaterial()->GetDensity();
+		G4int particleMass = aStep->GetTrack()->GetDefinition()->GetAtomicMass();
+		G4double kineticEnergyPerNucleon = aStep->GetPreStepPoint()->GetKineticEnergy() / particleMass;
 
-        G4double RBE_DSB = model->InterpolateRBE_DSB(kineticEnergyPerNucleon);
+		G4double RBE_DSB = model->InterpolateRBE_DSB(kineticEnergyPerNucleon);
 
-        G4double dose = edep / (density * fSolid->GetCubicVolume());
-        G4double doseRBE_DSB = dose * RBE_DSB;
+		G4double dose = edep / (density * fSolid->GetCubicVolume());
+		G4double doseRBE_DSB = dose * RBE_DSB;
 
-        doseRBE_DSB *= aStep->GetPreStepPoint()->GetWeight();
-        AccumulateHit(aStep, doseRBE_DSB);
+		doseRBE_DSB *= aStep->GetPreStepPoint()->GetWeight();
+		AccumulateHit(aStep, doseRBE_DSB);
 
-        return true;
-    }
+		return true;
+	}
 
-    return false;
+	return false;
 }
 
-
-TsModelRBE_DSB_MCDS_Tabulated::TsModelRBE_DSB_MCDS_Tabulated(const G4String &cellLine, TsParameterManager* pM)
+TsModelRBE_DSB_MCDS_Tabulated::TsModelRBE_DSB_MCDS_Tabulated(const G4String& cellLine, TsParameterManager* pM)
 {
-    G4String name = "Sc/" + cellLine + "/KE";
-    fKineticEnergyPerNucleon = pM->GetDoubleVector(name, "Energy");
-    fNumberOfEnergyBins = pM->GetVectorLength(name);
+	G4String name = "Sc/" + cellLine + "/KE";
+	fKineticEnergyPerNucleon = pM->GetDoubleVector(name, "Energy");
+	fNumberOfEnergyBins = pM->GetVectorLength(name);
 
-    name = "Sc/" + cellLine + "/DSBperGyPerCell";
-    fDSBperGyPerCell = pM->GetDoubleVector(name, "perDose");
+	name = "Sc/" + cellLine + "/DSBperGyPerCell";
+	fDSBperGyPerCell = pM->GetDoubleVector(name, "perDose");
 
-    name = "Sc/" + cellLine + "/ReferenceDSBperGyPerGbp";
-    fReferenceDSBperGyPerGbp = pM->GetDoubleParameter(name, "perDose");
+	name = "Sc/" + cellLine + "/ReferenceDSBperGyPerGbp";
+	fReferenceDSBperGyPerGbp = pM->GetDoubleParameter(name, "perDose");
 
-    name = "Sc/" + cellLine + "/GbpPerCell";
-    fGbpPerCell = pM->GetUnitlessParameter(name);
-    fDSBperGyPerCellx = fGbpPerCell * fReferenceDSBperGyPerGbp;
+	name = "Sc/" + cellLine + "/GbpPerCell";
+	fGbpPerCell = pM->GetUnitlessParameter(name);
+	fDSBperGyPerCellx = fGbpPerCell * fReferenceDSBperGyPerGbp;
 }
-
 
 G4double TsModelRBE_DSB_MCDS_Tabulated::InterpolateRBE_DSB(G4double kineticEnergyPerNucleon)
 {
-    G4int i=0;
-    while (fKineticEnergyPerNucleon[i] < kineticEnergyPerNucleon && i < fNumberOfEnergyBins-1)
-        i++;
-    i--;
+	G4int i = 0;
+	while (fKineticEnergyPerNucleon[i] < kineticEnergyPerNucleon && i < fNumberOfEnergyBins - 1)
+		i++;
+	i--;
 
-    return (fDSBperGyPerCell[i] + (kineticEnergyPerNucleon - fKineticEnergyPerNucleon[i]) / (fKineticEnergyPerNucleon[i+1] - fKineticEnergyPerNucleon[i]) * (fDSBperGyPerCell[i+1] - fDSBperGyPerCell[i]) )  / fDSBperGyPerCellx;
+	return (fDSBperGyPerCell[i] + (kineticEnergyPerNucleon - fKineticEnergyPerNucleon[i]) / (fKineticEnergyPerNucleon[i + 1] - fKineticEnergyPerNucleon[i]) * (fDSBperGyPerCell[i + 1] - fDSBperGyPerCell[i])) / fDSBperGyPerCellx;
 }

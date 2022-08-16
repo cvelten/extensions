@@ -46,139 +46,132 @@
 // ********************************************************************
 //
 
-
 #include "TsScoreRBE_TabulatedAlphaBeta.hh"
 
 #include "TsParameterManager.hh"
 
 TsScoreRBE_TabulatedAlphaBeta::TsScoreRBE_TabulatedAlphaBeta(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
-                         G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer)
-: TsVScoreRBE(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
+															 G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer)
+	: TsVScoreRBE(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
 {
-    if (fOutputQuantity == "rbe")
-        SetUnit("");
-    else if (fOutputQuantity == "alpha")
-        SetUnit("/Gy");
-    else if (fOutputQuantity == "beta")
-        SetUnit("/Gy2");
-    else if (fOutputQuantity == "survivalfraction")
-        SetUnit("");
-    else if (fOutputQuantity == "rbe_x_dose")
-        SetUnit("Gy");
-    else {
-        G4cerr << "Topas is exiting due to a serious error in scoring setup." << G4endl;
-        G4cerr << "No output quantity " << fOutputQuantity << " defined." << G4endl;
-        G4cerr << "Valid output quantities are: RBE, Alpha, Beta, SurvivalFraction and RBE_x_Dose (BiologicalDose)." << G4endl;
-        exit(1);
-    }
+	if (fOutputQuantity == "rbe")
+		SetUnit("");
+	else if (fOutputQuantity == "alpha")
+		SetUnit("/Gy");
+	else if (fOutputQuantity == "beta")
+		SetUnit("/Gy2");
+	else if (fOutputQuantity == "survivalfraction")
+		SetUnit("");
+	else if (fOutputQuantity == "rbe_x_dose")
+		SetUnit("Gy");
+	else {
+		G4cerr << "Topas is exiting due to a serious error in scoring setup." << G4endl;
+		G4cerr << "No output quantity " << fOutputQuantity << " defined." << G4endl;
+		G4cerr << "Valid output quantities are: RBE, Alpha, Beta, SurvivalFraction and RBE_x_Dose (BiologicalDose)." << G4endl;
+		exit(1);
+	}
 
-    if (!fPm->ParameterExists(GetFullParmName("PreCalculateStoppingPowerRatios")))
-        fPm->AddParameter("b:" + GetFullParmName("PreCalculateStoppingPowerRatios"), "\"True\"");
-    InstantiateSubScorer("DoseToWater", outFileName, "Dose");
-    InstantiateSubScorer("DoseAlpha_Tabulated", outFileName, "DoseAlpha");
-    InstantiateSubScorer("DoseSqrtBeta_Tabulated", outFileName, "DoseSqrtBeta");
+	if (!fPm->ParameterExists(GetFullParmName("PreCalculateStoppingPowerRatios")))
+		fPm->AddParameter("b:" + GetFullParmName("PreCalculateStoppingPowerRatios"), "\"True\"");
+	InstantiateSubScorer("DoseToWater", outFileName, "Dose");
+	InstantiateSubScorer("DoseAlpha_Tabulated", outFileName, "DoseAlpha");
+	InstantiateSubScorer("DoseSqrtBeta_Tabulated", outFileName, "DoseSqrtBeta");
 }
 
-
 TsScoreRBE_TabulatedAlphaBeta::~TsScoreRBE_TabulatedAlphaBeta()
-{;}
-
+{
+	;
+}
 
 TsVModelBiologicalEffect* TsScoreRBE_TabulatedAlphaBeta::ConstructModel(G4String cellLine)
 {
-    return new TsModelRBE_TabulatedAlphaBeta(cellLine, fPm, fOutputQuantity);
+	return new TsModelRBE_TabulatedAlphaBeta(cellLine, fPm, fOutputQuantity);
 }
-
 
 G4int TsScoreRBE_TabulatedAlphaBeta::CombineSubScorers()
 {
-    TsVBinnedScorer* doseScorer = dynamic_cast<TsVBinnedScorer*>(GetSubScorer("Dose"));
-    TsVBinnedScorer* doseAlphaScorer = dynamic_cast<TsVBinnedScorer*>(GetSubScorer("DoseAlpha"));
-    TsVBinnedScorer* doseSqrtBetaScorer = dynamic_cast<TsVBinnedScorer*>(GetSubScorer("DoseSqrtBeta"));
+	TsVBinnedScorer* doseScorer = dynamic_cast<TsVBinnedScorer*>(GetSubScorer("Dose"));
+	TsVBinnedScorer* doseAlphaScorer = dynamic_cast<TsVBinnedScorer*>(GetSubScorer("DoseAlpha"));
+	TsVBinnedScorer* doseSqrtBetaScorer = dynamic_cast<TsVBinnedScorer*>(GetSubScorer("DoseSqrtBeta"));
 
-    std::vector<G4double> normalizedDose = NormalizeDose(doseScorer->fFirstMomentMap);
+	std::vector<G4double> normalizedDose = NormalizeDose(doseScorer->fFirstMomentMap);
 
-    if (fOutputQuantity == "rbe") {
-        for (unsigned index = 0; index<fFirstMomentMap.size(); index++) {
-            TsModelRBE_TabulatedAlphaBeta* model = dynamic_cast<TsModelRBE_TabulatedAlphaBeta*>(GetModelForVoxel(index));
-            G4double alpha = model->GetAlpha(doseScorer->fFirstMomentMap[index], doseAlphaScorer->fFirstMomentMap[index]);
-            G4double beta = model->GetBeta(doseScorer->fFirstMomentMap[index], doseSqrtBetaScorer->fFirstMomentMap[index]);
-            fFirstMomentMap[index] = model->GetRBE(normalizedDose[index], alpha, beta);
-        }
-    }
-    else if (fOutputQuantity == "alpha") {
-        for (unsigned index = 0; index<fFirstMomentMap.size(); index++) {
-            TsModelRBE_TabulatedAlphaBeta* model = dynamic_cast<TsModelRBE_TabulatedAlphaBeta*>(GetModelForVoxel(index));
-            fFirstMomentMap[index] = model->GetAlpha(doseScorer->fFirstMomentMap[index], doseAlphaScorer->fFirstMomentMap[index]);
-        }
-    }
-    else if (fOutputQuantity == "beta") {
-        for (unsigned index = 0; index<fFirstMomentMap.size(); index++) {
-            TsModelRBE_TabulatedAlphaBeta* model = dynamic_cast<TsModelRBE_TabulatedAlphaBeta*>(GetModelForVoxel(index));
-            fFirstMomentMap[index] = model->GetBeta(doseScorer->fFirstMomentMap[index], doseSqrtBetaScorer->fFirstMomentMap[index]);
-        }
-    }
-    else if (fOutputQuantity == "survivalfraction") {
-        for (unsigned index = 0; index<fFirstMomentMap.size(); index++) {
-            TsModelRBE_TabulatedAlphaBeta* model = dynamic_cast<TsModelRBE_TabulatedAlphaBeta*>(GetModelForVoxel(index));
-            G4double alpha = model->GetAlpha(doseScorer->fFirstMomentMap[index], doseAlphaScorer->fFirstMomentMap[index]);
-            G4double beta = model->GetBeta(doseScorer->fFirstMomentMap[index], doseSqrtBetaScorer->fFirstMomentMap[index]);
-            fFirstMomentMap[index] = model->GetSurvivalFraction(normalizedDose[index], alpha, beta);
-        }
-    }
-    else if (fOutputQuantity == "rbe_x_dose") {
-        for (unsigned index = 0; index<fFirstMomentMap.size(); index++) {
-            TsModelRBE_TabulatedAlphaBeta* model = dynamic_cast<TsModelRBE_TabulatedAlphaBeta*>(GetModelForVoxel(index));
-            G4double alpha = model->GetAlpha(doseScorer->fFirstMomentMap[index], doseAlphaScorer->fFirstMomentMap[index]);
-            G4double beta = model->GetBeta(doseScorer->fFirstMomentMap[index], doseSqrtBetaScorer->fFirstMomentMap[index]);
-            fFirstMomentMap[index] = normalizedDose[index] * model->GetRBE(normalizedDose[index], alpha, beta);
-        }
-    }
+	if (fOutputQuantity == "rbe") {
+		for (unsigned index = 0; index < fFirstMomentMap.size(); index++) {
+			TsModelRBE_TabulatedAlphaBeta* model = dynamic_cast<TsModelRBE_TabulatedAlphaBeta*>(GetModelForVoxel(index));
+			G4double alpha = model->GetAlpha(doseScorer->fFirstMomentMap[index], doseAlphaScorer->fFirstMomentMap[index]);
+			G4double beta = model->GetBeta(doseScorer->fFirstMomentMap[index], doseSqrtBetaScorer->fFirstMomentMap[index]);
+			fFirstMomentMap[index] = model->GetRBE(normalizedDose[index], alpha, beta);
+		}
+	}
+	else if (fOutputQuantity == "alpha") {
+		for (unsigned index = 0; index < fFirstMomentMap.size(); index++) {
+			TsModelRBE_TabulatedAlphaBeta* model = dynamic_cast<TsModelRBE_TabulatedAlphaBeta*>(GetModelForVoxel(index));
+			fFirstMomentMap[index] = model->GetAlpha(doseScorer->fFirstMomentMap[index], doseAlphaScorer->fFirstMomentMap[index]);
+		}
+	}
+	else if (fOutputQuantity == "beta") {
+		for (unsigned index = 0; index < fFirstMomentMap.size(); index++) {
+			TsModelRBE_TabulatedAlphaBeta* model = dynamic_cast<TsModelRBE_TabulatedAlphaBeta*>(GetModelForVoxel(index));
+			fFirstMomentMap[index] = model->GetBeta(doseScorer->fFirstMomentMap[index], doseSqrtBetaScorer->fFirstMomentMap[index]);
+		}
+	}
+	else if (fOutputQuantity == "survivalfraction") {
+		for (unsigned index = 0; index < fFirstMomentMap.size(); index++) {
+			TsModelRBE_TabulatedAlphaBeta* model = dynamic_cast<TsModelRBE_TabulatedAlphaBeta*>(GetModelForVoxel(index));
+			G4double alpha = model->GetAlpha(doseScorer->fFirstMomentMap[index], doseAlphaScorer->fFirstMomentMap[index]);
+			G4double beta = model->GetBeta(doseScorer->fFirstMomentMap[index], doseSqrtBetaScorer->fFirstMomentMap[index]);
+			fFirstMomentMap[index] = model->GetSurvivalFraction(normalizedDose[index], alpha, beta);
+		}
+	}
+	else if (fOutputQuantity == "rbe_x_dose") {
+		for (unsigned index = 0; index < fFirstMomentMap.size(); index++) {
+			TsModelRBE_TabulatedAlphaBeta* model = dynamic_cast<TsModelRBE_TabulatedAlphaBeta*>(GetModelForVoxel(index));
+			G4double alpha = model->GetAlpha(doseScorer->fFirstMomentMap[index], doseAlphaScorer->fFirstMomentMap[index]);
+			G4double beta = model->GetBeta(doseScorer->fFirstMomentMap[index], doseSqrtBetaScorer->fFirstMomentMap[index]);
+			fFirstMomentMap[index] = normalizedDose[index] * model->GetRBE(normalizedDose[index], alpha, beta);
+		}
+	}
 
-    return 0;
+	return 0;
 }
 
-
-TsModelRBE_TabulatedAlphaBeta::TsModelRBE_TabulatedAlphaBeta(const G4String &cellLine, TsParameterManager* pM, const G4String &outputQuantity)
+TsModelRBE_TabulatedAlphaBeta::TsModelRBE_TabulatedAlphaBeta(const G4String& cellLine, TsParameterManager* pM, const G4String& outputQuantity)
 {
-    if (outputQuantity == "rbe" || outputQuantity == "rbe_x_dose") {
-        G4String name = "Sc/" + cellLine + "/Alphax";
-        fAlphax = pM->GetDoubleParameter(name, "perDose");
+	if (outputQuantity == "rbe" || outputQuantity == "rbe_x_dose") {
+		G4String name = "Sc/" + cellLine + "/Alphax";
+		fAlphax = pM->GetDoubleParameter(name, "perDose");
 
-        name = "Sc/" + cellLine + "/Betax";
-        fBetax = pM->GetDoubleParameter(name, "perDoseSquare");
-    }
+		name = "Sc/" + cellLine + "/Betax";
+		fBetax = pM->GetDoubleParameter(name, "perDoseSquare");
+	}
 }
-
 
 G4double TsModelRBE_TabulatedAlphaBeta::GetSurvivalFraction(G4double dose, G4double alpha, G4double beta)
 {
-    return exp(-alpha*dose - beta*dose*dose);
+	return exp(-alpha * dose - beta * dose * dose);
 }
-
 
 G4double TsModelRBE_TabulatedAlphaBeta::GetAlpha(G4double dose, G4double doseAlpha)
 {
-    if (dose == 0)
-        return 0;
+	if (dose == 0)
+		return 0;
 
-    return doseAlpha / dose;
+	return doseAlpha / dose;
 }
-
 
 G4double TsModelRBE_TabulatedAlphaBeta::GetBeta(G4double dose, G4double doseSqrtBeta)
 {
-    if (dose == 0)
-        return 0;
+	if (dose == 0)
+		return 0;
 
-    return doseSqrtBeta*doseSqrtBeta / (dose*dose);
+	return doseSqrtBeta * doseSqrtBeta / (dose * dose);
 }
-
 
 G4double TsModelRBE_TabulatedAlphaBeta::GetRBE(G4double dose, G4double alpha, G4double beta)
 {
-    if (dose == 0)
-        return 0;
+	if (dose == 0)
+		return 0;
 
-    return (sqrt(fAlphax*fAlphax + 4*fBetax*dose * (alpha + beta*dose)) - fAlphax) / (2*fBetax*dose);
+	return (sqrt(fAlphax * fAlphax + 4 * fBetax * dose * (alpha + beta * dose)) - fAlphax) / (2 * fBetax * dose);
 }

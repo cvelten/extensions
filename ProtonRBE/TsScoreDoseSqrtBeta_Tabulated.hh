@@ -48,38 +48,37 @@
 #ifndef TsScoreDoseSqrtBeta_Tabulated_hh
 #define TsScoreDoseSqrtBeta_Tabulated_hh
 
-#include "TsVScoreBiologicalEffect.hh"
-#include "G4ParticleTable.hh"
 #include "G4ParticleDefinition.hh"
+#include "G4ParticleTable.hh"
+#include "TsVScoreBiologicalEffect.hh"
 
 class TsScoreDoseSqrtBeta_Tabulated : public TsVScoreBiologicalEffect
 {
 public:
-    TsScoreDoseSqrtBeta_Tabulated(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
-                G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer=false);
-    virtual ~TsScoreDoseSqrtBeta_Tabulated();
+	TsScoreDoseSqrtBeta_Tabulated(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
+								  G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer = false);
+	virtual ~TsScoreDoseSqrtBeta_Tabulated();
 
-    G4bool ProcessHits(G4Step*, G4TouchableHistory*);
+	G4bool ProcessHits(G4Step*, G4TouchableHistory*);
 
 private:
-    TsVModelBiologicalEffect* ConstructModel(G4String cellLine);
+	TsVModelBiologicalEffect* ConstructModel(G4String cellLine);
 };
-
 
 class TsModelBeta_Tabulated : public TsVModelBiologicalEffect
 {
 public:
-    TsModelBeta_Tabulated(const G4String &cellLine, const G4String &modelName, TsParameterManager* pM);
+	TsModelBeta_Tabulated(const G4String& cellLine, const G4String& modelName, TsParameterManager* pM);
 
-    G4double InterpolateBeta(G4int particleZ, G4double kineticEnergyPerNucleon);
+	G4double InterpolateBeta(G4int particleZ, G4double kineticEnergyPerNucleon);
 
 private:
-    G4bool fUseReferenceBeta;
-    G4double fBetax;
-    G4int fNumberOfEnergyBins;
-    G4int fNumberOfParticleNames;
-    std::map<G4int, G4double* > fBeta; // key: particle Z, value: beta binned by energy
-    G4double* fKineticEnergyPerNucleon; // Energy bins for alpha and beta
+	G4bool fUseReferenceBeta;
+	G4double fBetax;
+	G4int fNumberOfEnergyBins;
+	G4int fNumberOfParticleNames;
+	std::map<G4int, G4double*> fBeta;	// key: particle Z, value: beta binned by energy
+	G4double* fKineticEnergyPerNucleon; // Energy bins for alpha and beta
 };
 
 #endif

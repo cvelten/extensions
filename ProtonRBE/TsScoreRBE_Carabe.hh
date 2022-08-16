@@ -53,20 +53,19 @@
 class TsScoreRBE_Carabe : public TsScoreRBE_MinMax
 {
 public:
-    TsScoreRBE_Carabe(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
-                G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer=false);
-    virtual ~TsScoreRBE_Carabe();
+	TsScoreRBE_Carabe(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
+					  G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer = false);
+	virtual ~TsScoreRBE_Carabe();
 
 protected:
-    TsVModelBiologicalEffect* ConstructModel(G4String cellLine);
+	TsVModelBiologicalEffect* ConstructModel(G4String cellLine);
 };
-
 
 class TsModelRBE_Carabe : public TsModelRBE_MinMax
 {
 public:
-    TsModelRBE_Carabe(const G4String &cellLine, TsParameterManager* pM, const G4String &outputQuantity);
-    G4double GetRBEmin(G4double LETd);
+	TsModelRBE_Carabe(const G4String& cellLine, TsParameterManager* pM, const G4String& outputQuantity);
+	G4double GetRBEmin(G4double LETd);
 };
 
 #endif

@@ -35,26 +35,26 @@
 /// \brief Implementation of the TsTrackerHit class
 
 #include "TsTrackerHit.hh"
-#include "G4UnitsTable.hh"
-#include "G4VVisManager.hh"
 #include "G4Circle.hh"
 #include "G4Colour.hh"
+#include "G4UnitsTable.hh"
+#include "G4VVisManager.hh"
 #include "G4VisAttributes.hh"
 
 #include <iomanip>
 
-G4ThreadLocal G4Allocator<TsTrackerHit>* TsTrackerHitAllocator=0;
+G4ThreadLocal G4Allocator<TsTrackerHit>* TsTrackerHitAllocator = 0;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 TsTrackerHit::TsTrackerHit()
-: 		 G4VHit(),
-		 fTrackID(-1),
-		 fEdep(0.),
-		 fPos(G4ThreeVector()),
-     fParticleName(""),
-     fParticleFlag(-1),
-		 fIncidentEnergy(0.)
+	: G4VHit(),
+	  fTrackID(-1),
+	  fEdep(0.),
+	  fPos(G4ThreeVector()),
+	  fParticleName(""),
+	  fParticleFlag(-1),
+	  fIncidentEnergy(0.)
 {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -64,35 +64,35 @@ TsTrackerHit::~TsTrackerHit() {}
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 TsTrackerHit::TsTrackerHit(const TsTrackerHit& right)
-  : G4VHit()
+	: G4VHit()
 {
-  fTrackID   = right.fTrackID;
-  fEdep      = right.fEdep;
-  fPos       = right.fPos;
-  fIncidentEnergy = right.fIncidentEnergy;
-  fParticleFlag =right.fParticleFlag;
-  fParticleName =right.fParticleName;
+	fTrackID = right.fTrackID;
+	fEdep = right.fEdep;
+	fPos = right.fPos;
+	fIncidentEnergy = right.fIncidentEnergy;
+	fParticleFlag = right.fParticleFlag;
+	fParticleName = right.fParticleName;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 const TsTrackerHit& TsTrackerHit::operator=(const TsTrackerHit& right)
 {
-  fTrackID   = right.fTrackID;
-  fEdep      = right.fEdep;
-  fPos       = right.fPos;
-  fIncidentEnergy = right.fIncidentEnergy;
-  fParticleFlag =right.fParticleFlag;
-  fParticleName = right.fParticleName;
+	fTrackID = right.fTrackID;
+	fEdep = right.fEdep;
+	fPos = right.fPos;
+	fIncidentEnergy = right.fIncidentEnergy;
+	fParticleFlag = right.fParticleFlag;
+	fParticleName = right.fParticleName;
 
-  return *this;
+	return *this;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 G4int TsTrackerHit::operator==(const TsTrackerHit& right) const
 {
-  return ( this == &right ) ? 1 : 0;
+	return (this == &right) ? 1 : 0;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

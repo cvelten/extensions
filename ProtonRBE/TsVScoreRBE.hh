@@ -53,20 +53,20 @@
 class TsVScoreRBE : public TsVScoreBiologicalEffect
 {
 public:
-    TsVScoreRBE(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager *eM,
-                G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer);
-    virtual ~TsVScoreRBE();
+	TsVScoreRBE(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
+				G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer);
+	virtual ~TsVScoreRBE();
 
 protected:
-    std::vector<G4double> NormalizeDose(const std::vector<G4double> &dose);
-    G4double GetScaleFactor(const std::vector<G4double> &dose);
+	std::vector<G4double> NormalizeDose(const std::vector<G4double>& dose);
+	G4double GetScaleFactor(const std::vector<G4double>& dose);
 
-    G4String fOutputQuantity;
-    G4bool fIsSimultaneousExposure;
+	G4String fOutputQuantity;
+	G4bool fIsSimultaneousExposure;
 
-    G4double fPrescribedDose;
-    G4String fPrescribedDoseStructureName;
-    G4String fPrescribedDoseMetric;
+	G4double fPrescribedDose;
+	G4String fPrescribedDoseStructureName;
+	G4String fPrescribedDoseMetric;
 };
 
 #endif

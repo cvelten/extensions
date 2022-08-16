@@ -52,81 +52,77 @@
 #include <math.h>
 
 TsScoreRBE_MinMax::TsScoreRBE_MinMax(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM, G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer)
-: TsVScoreRBE_DoseLET(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
-{;}
-
+	: TsVScoreRBE_DoseLET(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
+{
+	;
+}
 
 TsScoreRBE_MinMax::~TsScoreRBE_MinMax()
-{;}
-
+{
+	;
+}
 
 TsVModelBiologicalEffect* TsScoreRBE_MinMax::ConstructModel(G4String cellLine)
 {
-    return new TsModelRBE_MinMax(cellLine, fPm, fOutputQuantity);
+	return new TsModelRBE_MinMax(cellLine, fPm, fOutputQuantity);
 }
 
-
-TsModelRBE_MinMax::TsModelRBE_MinMax(const G4String &cellLine, TsParameterManager* pM, const G4String &outputQuantity)
+TsModelRBE_MinMax::TsModelRBE_MinMax(const G4String& cellLine, TsParameterManager* pM, const G4String& outputQuantity)
 {
-    G4String name = "Sc/" + cellLine + "/AlphaBetaRatiox";
-    fAlphaBetax = pM->GetDoubleParameter(name, "Dose");
+	G4String name = "Sc/" + cellLine + "/AlphaBetaRatiox";
+	fAlphaBetax = pM->GetDoubleParameter(name, "Dose");
 
-    name = "Sc/" + cellLine + "/RBEmaxOffset";
-    fRBEmaxOffset = pM->GetUnitlessParameter(name);
+	name = "Sc/" + cellLine + "/RBEmaxOffset";
+	fRBEmaxOffset = pM->GetUnitlessParameter(name);
 
-    name = "Sc/" + cellLine + "/RBEmaxSlope";
-    fRBEmaxSlope = pM->GetDoubleParameter(name, "dose perForce");
+	name = "Sc/" + cellLine + "/RBEmaxSlope";
+	fRBEmaxSlope = pM->GetDoubleParameter(name, "dose perForce");
 
-    name = "Sc/" + cellLine + "/RBEminOffset";
-    fRBEminOffset = pM->GetUnitlessParameter(name);
+	name = "Sc/" + cellLine + "/RBEminOffset";
+	fRBEminOffset = pM->GetUnitlessParameter(name);
 
-    name = "Sc/" + cellLine + "/RBEminSlope";
-    fRBEminSlope = pM->GetDoubleParameter(name, "perForce");
+	name = "Sc/" + cellLine + "/RBEminSlope";
+	fRBEminSlope = pM->GetDoubleParameter(name, "perForce");
 
-    if (outputQuantity == "alpha" || outputQuantity == "survivalfraction") {
-        name = "Sc/" + cellLine + "/Alphax";
-        fAlphax = pM->GetDoubleParameter(name, "perDose");
-    }
+	if (outputQuantity == "alpha" || outputQuantity == "survivalfraction") {
+		name = "Sc/" + cellLine + "/Alphax";
+		fAlphax = pM->GetDoubleParameter(name, "perDose");
+	}
 
-    if (outputQuantity == "beta" || outputQuantity == "survivalfraction") {
-        name = "Sc/" + cellLine + "/Betax";
-        fBetax = pM->GetDoubleParameter(name, "perDoseSquare");
-    }
+	if (outputQuantity == "beta" || outputQuantity == "survivalfraction") {
+		name = "Sc/" + cellLine + "/Betax";
+		fBetax = pM->GetDoubleParameter(name, "perDoseSquare");
+	}
 }
-
 
 G4double TsModelRBE_MinMax::GetRBE(G4double dose, G4double LETd)
 {
-    if (dose == 0)
-        return 0;
+	if (dose == 0)
+		return 0;
 
-    G4double RBEmax = GetRBEmax(LETd);
-    G4double RBEmin = GetRBEmin(LETd);
+	G4double RBEmax = GetRBEmax(LETd);
+	G4double RBEmin = GetRBEmin(LETd);
 
-    return (sqrt(fAlphaBetax*fAlphaBetax + 4*fAlphaBetax*RBEmax*dose + 4*RBEmin*RBEmin*dose*dose) - fAlphaBetax) / (2*dose);
+	return (sqrt(fAlphaBetax * fAlphaBetax + 4 * fAlphaBetax * RBEmax * dose + 4 * RBEmin * RBEmin * dose * dose) - fAlphaBetax) / (2 * dose);
 }
-
 
 G4double TsModelRBE_MinMax::GetAlpha(G4double LETd)
 {
-    return GetRBEmax(LETd) * fAlphax;
+	return GetRBEmax(LETd) * fAlphax;
 }
-
 
 G4double TsModelRBE_MinMax::GetBeta(G4double LETd)
 {
-    G4double RBEmin = GetRBEmin(LETd);
-    return RBEmin * RBEmin * fBetax;
+	G4double RBEmin = GetRBEmin(LETd);
+	return RBEmin * RBEmin * fBetax;
 }
-
 
 G4double TsModelRBE_MinMax::GetRBEmax(G4double LETd)
 {
-    return fRBEmaxOffset + fRBEmaxSlope / fAlphaBetax * LETd;
+	return fRBEmaxOffset + fRBEmaxSlope / fAlphaBetax * LETd;
 }
-
 
 G4double TsModelRBE_MinMax::GetRBEmin(G4double LETd)
 {
-    return fRBEminOffset + fRBEminSlope * sqrt(fAlphaBetax/gray) * LETd;
+	return fRBEminOffset + fRBEminSlope * sqrt(fAlphaBetax / gray) * LETd;
 }

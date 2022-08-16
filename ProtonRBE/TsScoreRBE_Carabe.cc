@@ -51,44 +51,44 @@
 #include "TsParameterManager.hh"
 
 TsScoreRBE_Carabe::TsScoreRBE_Carabe(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM, G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer)
-: TsScoreRBE_MinMax(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
-{;}
-
+	: TsScoreRBE_MinMax(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
+{
+	;
+}
 
 TsScoreRBE_Carabe::~TsScoreRBE_Carabe()
-{;}
-
+{
+	;
+}
 
 TsVModelBiologicalEffect* TsScoreRBE_Carabe::ConstructModel(G4String cellLine)
 {
-    return new TsModelRBE_Carabe(cellLine, fPm, fOutputQuantity);
+	return new TsModelRBE_Carabe(cellLine, fPm, fOutputQuantity);
 }
 
-
-TsModelRBE_Carabe::TsModelRBE_Carabe(const G4String &cellLine, TsParameterManager* pM, const G4String &outputQuantity)
-: TsModelRBE_MinMax()
+TsModelRBE_Carabe::TsModelRBE_Carabe(const G4String& cellLine, TsParameterManager* pM, const G4String& outputQuantity)
+	: TsModelRBE_MinMax()
 {
-    fRBEmaxOffset = 0.834;
-    fRBEmaxSlope  = 0.154 * 2.686 * gray/(keV/um);
-    fRBEminOffset = 1.09;
-    fRBEminSlope  = 0.006 * 2.686 * gray/(keV/um);
+	fRBEmaxOffset = 0.834;
+	fRBEmaxSlope = 0.154 * 2.686 * gray / (keV / um);
+	fRBEminOffset = 1.09;
+	fRBEminSlope = 0.006 * 2.686 * gray / (keV / um);
 
-    G4String name = "Sc/" + cellLine + "/AlphaBetaRatiox";
-    fAlphaBetax = pM->GetDoubleParameter(name, "Dose");
+	G4String name = "Sc/" + cellLine + "/AlphaBetaRatiox";
+	fAlphaBetax = pM->GetDoubleParameter(name, "Dose");
 
-    if (outputQuantity == "alpha" || outputQuantity == "survivalfraction") {
-        name = "Sc/" + cellLine + "/Alphax";
-        fAlphax = pM->GetDoubleParameter(name, "perDose");
-    }
+	if (outputQuantity == "alpha" || outputQuantity == "survivalfraction") {
+		name = "Sc/" + cellLine + "/Alphax";
+		fAlphax = pM->GetDoubleParameter(name, "perDose");
+	}
 
-    if (outputQuantity == "beta" || outputQuantity == "survivalfraction") {
-        name = "Sc/" + cellLine + "/Betax";
-        fBetax = pM->GetDoubleParameter(name, "perDoseSquare");
-    }
+	if (outputQuantity == "beta" || outputQuantity == "survivalfraction") {
+		name = "Sc/" + cellLine + "/Betax";
+		fBetax = pM->GetDoubleParameter(name, "perDoseSquare");
+	}
 }
-
 
 G4double TsModelRBE_Carabe::GetRBEmin(G4double LETd)
 {
-    return fRBEminOffset + fRBEminSlope / fAlphaBetax * LETd;
+	return fRBEminOffset + fRBEminSlope / fAlphaBetax * LETd;
 }

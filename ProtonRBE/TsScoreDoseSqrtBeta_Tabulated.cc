@@ -52,110 +52,107 @@
 #include <math.h>
 
 TsScoreDoseSqrtBeta_Tabulated::TsScoreDoseSqrtBeta_Tabulated(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM, G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer)
-: TsVScoreBiologicalEffect(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
+	: TsVScoreBiologicalEffect(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
 {
-    SetUnit("/Gy");
+	SetUnit("/Gy");
 }
 
-
 TsScoreDoseSqrtBeta_Tabulated::~TsScoreDoseSqrtBeta_Tabulated()
-{;}
-
+{
+	;
+}
 
 TsVModelBiologicalEffect* TsScoreDoseSqrtBeta_Tabulated::ConstructModel(G4String cellLine)
 {
-    G4String modelName = fPm->GetStringParameter(GetFullParmName("ModelName"));
+	G4String modelName = fPm->GetStringParameter(GetFullParmName("ModelName"));
 
-    return new TsModelBeta_Tabulated(cellLine, modelName, fPm);
+	return new TsModelBeta_Tabulated(cellLine, modelName, fPm);
 }
-
 
 G4bool TsScoreDoseSqrtBeta_Tabulated::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 {
-    if (!fIsActive) {
-        fSkippedWhileInactive++;
-        return false;
-    }
+	if (!fIsActive) {
+		fSkippedWhileInactive++;
+		return false;
+	}
 
-    G4double edep = aStep->GetTotalEnergyDeposit();
-    if ( edep > 0. ) {
-        ResolveSolid(aStep);
-        G4int index = fComponent->GetIndex((G4Step*)aStep);
-        TsModelBeta_Tabulated* model = dynamic_cast<TsModelBeta_Tabulated*>(GetModelForVoxel(index));
+	G4double edep = aStep->GetTotalEnergyDeposit();
+	if (edep > 0.) {
+		ResolveSolid(aStep);
+		G4int index = fComponent->GetIndex((G4Step*)aStep);
+		TsModelBeta_Tabulated* model = dynamic_cast<TsModelBeta_Tabulated*>(GetModelForVoxel(index));
 
-        G4int particleZ = aStep->GetTrack()->GetDefinition()->GetAtomicNumber();
-        G4double kineticEnergyPerNucleon = aStep->GetPreStepPoint()->GetKineticEnergy() / aStep->GetTrack()->GetDefinition()->GetAtomicMass();
+		G4int particleZ = aStep->GetTrack()->GetDefinition()->GetAtomicNumber();
+		G4double kineticEnergyPerNucleon = aStep->GetPreStepPoint()->GetKineticEnergy() / aStep->GetTrack()->GetDefinition()->GetAtomicMass();
 
-        G4double beta = model->InterpolateBeta(particleZ, kineticEnergyPerNucleon);
-        if (beta < 0)
-            return false;
+		G4double beta = model->InterpolateBeta(particleZ, kineticEnergyPerNucleon);
+		if (beta < 0)
+			return false;
 
-        G4double density = aStep->GetPreStepPoint()->GetMaterial()->GetDensity();
-        G4double dose = edep / (density * fSolid->GetCubicVolume());
-        G4double doseSqrtBeta = dose * sqrt(beta);
+		G4double density = aStep->GetPreStepPoint()->GetMaterial()->GetDensity();
+		G4double dose = edep / (density * fSolid->GetCubicVolume());
+		G4double doseSqrtBeta = dose * sqrt(beta);
 
-        doseSqrtBeta *= aStep->GetPreStepPoint()->GetWeight();
-        AccumulateHit(aStep, doseSqrtBeta);
-        return true;
-    }
-    return false;
+		doseSqrtBeta *= aStep->GetPreStepPoint()->GetWeight();
+		AccumulateHit(aStep, doseSqrtBeta);
+		return true;
+	}
+	return false;
 }
 
-
-TsModelBeta_Tabulated::TsModelBeta_Tabulated(const G4String &cellLine, const G4String &modelName, TsParameterManager* pM)
+TsModelBeta_Tabulated::TsModelBeta_Tabulated(const G4String& cellLine, const G4String& modelName, TsParameterManager* pM)
 {
-    G4String paramPrefix = "Sc/" + cellLine + "/" + modelName + "/";
+	G4String paramPrefix = "Sc/" + cellLine + "/" + modelName + "/";
 
-    G4String name = paramPrefix + "UseReferenceBeta";
-    fUseReferenceBeta = pM->ParameterExists(name) && pM->GetBooleanParameter(name);
+	G4String name = paramPrefix + "UseReferenceBeta";
+	fUseReferenceBeta = pM->ParameterExists(name) && pM->GetBooleanParameter(name);
 
-    if (fUseReferenceBeta) {
-        name = "Sc/" + cellLine + "/Betax";
-        fBetax = pM->GetDoubleParameter(name, "perDoseSquare");
-    }
-    else {
-        name = paramPrefix + "KineticEnergyPerNucleon";
-        fKineticEnergyPerNucleon = pM->GetDoubleVector(name, "Energy");
-        fNumberOfEnergyBins = pM->GetVectorLength(name);
+	if (fUseReferenceBeta) {
+		name = "Sc/" + cellLine + "/Betax";
+		fBetax = pM->GetDoubleParameter(name, "perDoseSquare");
+	}
+	else {
+		name = paramPrefix + "KineticEnergyPerNucleon";
+		fKineticEnergyPerNucleon = pM->GetDoubleVector(name, "Energy");
+		fNumberOfEnergyBins = pM->GetVectorLength(name);
 
-        name = paramPrefix + "ParticleName";
-        G4String* particleName = pM->GetStringVector(name);
-        fNumberOfParticleNames = pM->GetVectorLength(name);
+		name = paramPrefix + "ParticleName";
+		G4String* particleName = pM->GetStringVector(name);
+		fNumberOfParticleNames = pM->GetVectorLength(name);
 
-        name = paramPrefix + "ParticleZ";
-        G4int* particleZ = pM->GetIntegerVector(name);
-        if (pM->GetVectorLength(name) != fNumberOfParticleNames) {
-            G4cerr << "Topas is exiting due to a serious error in scoring." << G4endl;
-            G4cerr << paramPrefix << " has different vector lengths" << G4endl;
-            G4cerr << "for ParticleName and ParticleZ parameters." << G4endl;
-            exit(1);
-        }
+		name = paramPrefix + "ParticleZ";
+		G4int* particleZ = pM->GetIntegerVector(name);
+		if (pM->GetVectorLength(name) != fNumberOfParticleNames) {
+			G4cerr << "Topas is exiting due to a serious error in scoring." << G4endl;
+			G4cerr << paramPrefix << " has different vector lengths" << G4endl;
+			G4cerr << "for ParticleName and ParticleZ parameters." << G4endl;
+			exit(1);
+		}
 
-        for (G4int i=0; i<fNumberOfParticleNames; i++) {
+		for (G4int i = 0; i < fNumberOfParticleNames; i++) {
 
-            if (fBeta.count(particleZ[i]) > 0) {
-                G4cerr << "Topas is exiting due to a serious error in scoring." << G4endl;
-                G4cerr << paramPrefix << "ParticleZ contains duplicate entries." << G4endl;
-                exit(1);
-            }
-            fBeta[particleZ[i]] = pM->GetDoubleVector(paramPrefix + particleName[i] + "/Beta", "perDoseSquare");
-        }
-    }
+			if (fBeta.count(particleZ[i]) > 0) {
+				G4cerr << "Topas is exiting due to a serious error in scoring." << G4endl;
+				G4cerr << paramPrefix << "ParticleZ contains duplicate entries." << G4endl;
+				exit(1);
+			}
+			fBeta[particleZ[i]] = pM->GetDoubleVector(paramPrefix + particleName[i] + "/Beta", "perDoseSquare");
+		}
+	}
 }
-
 
 G4double TsModelBeta_Tabulated::InterpolateBeta(G4int particleZ, G4double kineticEnergyPerNucleon)
 {
-    if (fUseReferenceBeta)
-        return fBetax;
+	if (fUseReferenceBeta)
+		return fBetax;
 
-    if (fBeta.count(particleZ)==0)
-        return -1;
+	if (fBeta.count(particleZ) == 0)
+		return -1;
 
-    G4int i=0;
-    while (fKineticEnergyPerNucleon[i] < kineticEnergyPerNucleon && i < fNumberOfEnergyBins-1)
-        i++;
-    i--;
+	G4int i = 0;
+	while (fKineticEnergyPerNucleon[i] < kineticEnergyPerNucleon && i < fNumberOfEnergyBins - 1)
+		i++;
+	i--;
 
-    return fBeta[particleZ][i] + ( (kineticEnergyPerNucleon - fKineticEnergyPerNucleon[i]) / (fKineticEnergyPerNucleon[i+1] - fKineticEnergyPerNucleon[i]) * (fBeta[particleZ][i+1] - fBeta[particleZ][i]) );
+	return fBeta[particleZ][i] + ((kineticEnergyPerNucleon - fKineticEnergyPerNucleon[i]) / (fKineticEnergyPerNucleon[i + 1] - fKineticEnergyPerNucleon[i]) * (fBeta[particleZ][i + 1] - fBeta[particleZ][i]));
 }

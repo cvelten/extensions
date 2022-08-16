@@ -48,45 +48,44 @@
 #ifndef TsScoreDoseRBE_DSB_MCDS_hh
 #define TsScoreDoseRBE_DSB_MCDS_hh
 
-#include "TsVScoreBiologicalEffect.hh"
 #include "G4ParticleTable.hh"
+#include "TsVScoreBiologicalEffect.hh"
 
 class TsScoreDoseRBE_DSB_MCDS : public TsVScoreBiologicalEffect
 {
 public:
-    TsScoreDoseRBE_DSB_MCDS(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
-                G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer=false);
-    virtual ~TsScoreDoseRBE_DSB_MCDS();
+	TsScoreDoseRBE_DSB_MCDS(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
+							G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer = false);
+	virtual ~TsScoreDoseRBE_DSB_MCDS();
 
-    G4bool ProcessHits(G4Step*, G4TouchableHistory*);
+	G4bool ProcessHits(G4Step*, G4TouchableHistory*);
 
 private:
-    TsVModelBiologicalEffect* ConstructModel(G4String cellLine);
+	TsVModelBiologicalEffect* ConstructModel(G4String cellLine);
 };
-
 
 class TsModelRBE_DSB_MCDS : public TsVModelBiologicalEffect
 {
 public:
-    TsModelRBE_DSB_MCDS(const G4String &cellLine, TsParameterManager* pM);
+	TsModelRBE_DSB_MCDS(const G4String& cellLine, TsParameterManager* pM);
 
-    G4double GetRBE_DSB(G4double x);
+	G4double GetRBE_DSB(G4double x);
 
 private:
-    G4double fNormoxicA;
-    G4double fNormoxicB;
-    G4double fNormoxicC;
-    G4double fNormoxicD;
-    G4double fAnoxicA;
-    G4double fAnoxicB;
-    G4double fAnoxicC;
-    G4double fAnoxicD;
-    G4double fAnoxicE;
-    G4double fAnoxicF;
-    G4double fAnoxicG;
-    G4double fAnoxicH;
-    G4double fAnoxicI;
-    G4bool fIsAnoxic;
+	G4double fNormoxicA;
+	G4double fNormoxicB;
+	G4double fNormoxicC;
+	G4double fNormoxicD;
+	G4double fAnoxicA;
+	G4double fAnoxicB;
+	G4double fAnoxicC;
+	G4double fAnoxicD;
+	G4double fAnoxicE;
+	G4double fAnoxicF;
+	G4double fAnoxicG;
+	G4double fAnoxicH;
+	G4double fAnoxicI;
+	G4bool fIsAnoxic;
 };
 
 #endif

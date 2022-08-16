@@ -55,32 +55,31 @@ class G4ParticleDefinition;
 class TsScoreDoseRBE_DSB_MCDS_Tabulated : public TsVScoreBiologicalEffect
 {
 public:
-    TsScoreDoseRBE_DSB_MCDS_Tabulated(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
-                G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer=false);
-    virtual ~TsScoreDoseRBE_DSB_MCDS_Tabulated();
+	TsScoreDoseRBE_DSB_MCDS_Tabulated(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
+									  G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer = false);
+	virtual ~TsScoreDoseRBE_DSB_MCDS_Tabulated();
 
-    G4bool ProcessHits(G4Step*, G4TouchableHistory*);
+	G4bool ProcessHits(G4Step*, G4TouchableHistory*);
 
 private:
-    TsVModelBiologicalEffect* ConstructModel(G4String cellLine);
-    G4ParticleDefinition* fParticleDefinition;
+	TsVModelBiologicalEffect* ConstructModel(G4String cellLine);
+	G4ParticleDefinition* fParticleDefinition;
 };
-
 
 class TsModelRBE_DSB_MCDS_Tabulated : public TsVModelBiologicalEffect
 {
 public:
-    TsModelRBE_DSB_MCDS_Tabulated(const G4String &cellLine, TsParameterManager* pM);
+	TsModelRBE_DSB_MCDS_Tabulated(const G4String& cellLine, TsParameterManager* pM);
 
-    G4double InterpolateRBE_DSB(G4double kineticEnergyPerNucleon);
+	G4double InterpolateRBE_DSB(G4double kineticEnergyPerNucleon);
 
 private:
-    G4int fNumberOfEnergyBins;
-    G4double* fDSBperGyPerCell;
-    G4double* fKineticEnergyPerNucleon; // Energy bins for alpha and beta
-    G4double fDSBperGyPerCellx;         // Double-strand breaks per Gy and cell for the reference radiation
-    G4double fReferenceDSBperGyPerGbp;  // Double-strand breaks per Gy per Gbp for the reference radiation
-    G4double fGbpPerCell;
+	G4int fNumberOfEnergyBins;
+	G4double* fDSBperGyPerCell;
+	G4double* fKineticEnergyPerNucleon; // Energy bins for alpha and beta
+	G4double fDSBperGyPerCellx;			// Double-strand breaks per Gy and cell for the reference radiation
+	G4double fReferenceDSBperGyPerGbp;	// Double-strand breaks per Gy per Gbp for the reference radiation
+	G4double fGbpPerCell;
 };
 
 #endif

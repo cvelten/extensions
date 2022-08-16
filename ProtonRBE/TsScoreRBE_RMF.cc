@@ -52,147 +52,141 @@
 #include <math.h>
 
 TsScoreRBE_RMF::TsScoreRBE_RMF(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM, G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer)
-: TsVScoreRBE(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
+	: TsVScoreRBE(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
 {
-    if (fOutputQuantity == "rbe")
-        SetUnit("");
-    else if (fOutputQuantity == "rbe_dsb")
-        SetUnit("");
-    else if (fOutputQuantity == "alpha")
-        SetUnit("/Gy");
-    else if (fOutputQuantity == "beta")
-        SetUnit("/Gy2");
-    else if (fOutputQuantity == "survivalfraction")
-        SetUnit("");
-    else if (fOutputQuantity == "rbe_x_dose")
-        SetUnit("Gy");
-    else {
-        G4cerr << "Topas is exiting due to a serious error in scoring setup." << G4endl;
-        G4cerr << "No output quantity " << fOutputQuantity << " defined." << G4endl;
-        G4cerr << "Valid output quantities are: RBE, RBE_DSB, Alpha, Beta, SurvivalFraction and RBE_x_Dose (BiologicalDose)." << G4endl;
-        exit(1);
-    }
+	if (fOutputQuantity == "rbe")
+		SetUnit("");
+	else if (fOutputQuantity == "rbe_dsb")
+		SetUnit("");
+	else if (fOutputQuantity == "alpha")
+		SetUnit("/Gy");
+	else if (fOutputQuantity == "beta")
+		SetUnit("/Gy2");
+	else if (fOutputQuantity == "survivalfraction")
+		SetUnit("");
+	else if (fOutputQuantity == "rbe_x_dose")
+		SetUnit("Gy");
+	else {
+		G4cerr << "Topas is exiting due to a serious error in scoring setup." << G4endl;
+		G4cerr << "No output quantity " << fOutputQuantity << " defined." << G4endl;
+		G4cerr << "Valid output quantities are: RBE, RBE_DSB, Alpha, Beta, SurvivalFraction and RBE_x_Dose (BiologicalDose)." << G4endl;
+		exit(1);
+	}
 
-    if (!fPm->ParameterExists(GetFullParmName("PreCalculateStoppingPowerRatios")))
-        fPm->AddParameter("b:" + GetFullParmName("PreCalculateStoppingPowerRatios"), "\"True\"");
-    InstantiateSubScorer("DoseToWater", outFileName, "Dose");
-    InstantiateSubScorer("ProtonLET", outFileName, "LET");
+	if (!fPm->ParameterExists(GetFullParmName("PreCalculateStoppingPowerRatios")))
+		fPm->AddParameter("b:" + GetFullParmName("PreCalculateStoppingPowerRatios"), "\"True\"");
+	InstantiateSubScorer("DoseToWater", outFileName, "Dose");
+	InstantiateSubScorer("ProtonLET", outFileName, "LET");
 
-    if (fPm->ParameterExists(GetFullParmName("UseTabulatedVersion")) && fPm->GetBooleanParameter(GetFullParmName("UseTabulatedVersion")))
-        InstantiateSubScorer("DoseRBE_DSB_MCDS_Tabulated", outFileName, "Dose_RBE_DSB");
-    else
-        InstantiateSubScorer("DoseRBE_DSB_MCDS", outFileName, "Dose_RBE_DSB");
+	if (fPm->ParameterExists(GetFullParmName("UseTabulatedVersion")) && fPm->GetBooleanParameter(GetFullParmName("UseTabulatedVersion")))
+		InstantiateSubScorer("DoseRBE_DSB_MCDS_Tabulated", outFileName, "Dose_RBE_DSB");
+	else
+		InstantiateSubScorer("DoseRBE_DSB_MCDS", outFileName, "Dose_RBE_DSB");
 }
 
-
 TsScoreRBE_RMF::~TsScoreRBE_RMF()
-{;}
-
+{
+	;
+}
 
 TsVModelBiologicalEffect* TsScoreRBE_RMF::ConstructModel(G4String cellLine)
 {
-    return new TsModelRBE_RMF(cellLine, fPm, fOutputQuantity);
+	return new TsModelRBE_RMF(cellLine, fPm, fOutputQuantity);
 }
-
 
 G4int TsScoreRBE_RMF::CombineSubScorers()
 {
-    TsVBinnedScorer* doseScorer = dynamic_cast<TsVBinnedScorer*>(GetSubScorer("Dose"));
-    TsVBinnedScorer* letScorer = dynamic_cast<TsVBinnedScorer*>(GetSubScorer("LET"));
-    TsVBinnedScorer* dose_RBE_DSB_Scorer = dynamic_cast<TsVBinnedScorer*>(GetSubScorer("Dose_RBE_DSB"));
-    G4double density = 1.0 * g/cm3;  // ProtonLET scores LET per unit density
+	TsVBinnedScorer* doseScorer = dynamic_cast<TsVBinnedScorer*>(GetSubScorer("Dose"));
+	TsVBinnedScorer* letScorer = dynamic_cast<TsVBinnedScorer*>(GetSubScorer("LET"));
+	TsVBinnedScorer* dose_RBE_DSB_Scorer = dynamic_cast<TsVBinnedScorer*>(GetSubScorer("Dose_RBE_DSB"));
+	G4double density = 1.0 * g / cm3; // ProtonLET scores LET per unit density
 
-    std::vector<G4double> normalizedDose = NormalizeDose(doseScorer->fFirstMomentMap);
-// RBE Cell survival based on RBE RMF model which uses RBE_DSB as input.  RBE_DSB caluclated with MCDS??  sm/jm Nov 18  
-    if (fOutputQuantity == "rbe") {
-        for (unsigned index = 0; index<fFirstMomentMap.size(); index++) {
-            TsModelRBE_RMF* model = dynamic_cast<TsModelRBE_RMF*>(GetModelForVoxel(index));
-            G4double RBE_DSB = dose_RBE_DSB_Scorer->fFirstMomentMap[index] / doseScorer->fFirstMomentMap[index];
-            fFirstMomentMap[index] = model->GetRBE(normalizedDose[index], density*letScorer->fFirstMomentMap[index], RBE_DSB);
-        }
-    }
-    else if (fOutputQuantity == "alpha") {
-        for (unsigned index = 0; index<fFirstMomentMap.size(); index++) {
-            TsModelRBE_RMF* model = dynamic_cast<TsModelRBE_RMF*>(GetModelForVoxel(index));
-            G4double RBE_DSB = dose_RBE_DSB_Scorer->fFirstMomentMap[index] / doseScorer->fFirstMomentMap[index];
-            fFirstMomentMap[index] = model->GetAlpha(density*letScorer->fFirstMomentMap[index], RBE_DSB);
-        }
-    }
-    else if (fOutputQuantity == "beta") {
-        for (unsigned index = 0; index<fFirstMomentMap.size(); index++) {
-            TsModelRBE_RMF* model = dynamic_cast<TsModelRBE_RMF*>(GetModelForVoxel(index));
-            G4double RBE_DSB = dose_RBE_DSB_Scorer->fFirstMomentMap[index] / doseScorer->fFirstMomentMap[index];
-            fFirstMomentMap[index] = model->GetBeta(RBE_DSB);
-        }
-    }
-    else if (fOutputQuantity == "survivalfraction") {
-        for (unsigned index = 0; index<fFirstMomentMap.size(); index++) {
-            TsModelRBE_RMF* model = dynamic_cast<TsModelRBE_RMF*>(GetModelForVoxel(index));
-            G4double RBE_DSB = dose_RBE_DSB_Scorer->fFirstMomentMap[index] / doseScorer->fFirstMomentMap[index];
-            fFirstMomentMap[index] = model->GetSurvivalFraction(normalizedDose[index], density*letScorer->fFirstMomentMap[index], RBE_DSB);
-        }
-    }
-    else if (fOutputQuantity == "rbe_x_dose") {
-        for (unsigned index = 0; index<fFirstMomentMap.size(); index++) {
-            TsModelRBE_RMF* model = dynamic_cast<TsModelRBE_RMF*>(GetModelForVoxel(index));
-            G4double RBE_DSB = dose_RBE_DSB_Scorer->fFirstMomentMap[index] / doseScorer->fFirstMomentMap[index];
-            fFirstMomentMap[index] = normalizedDose[index] * model->GetRBE(normalizedDose[index], density*letScorer->fFirstMomentMap[index], RBE_DSB);
-        }
-    }
-    else if (fOutputQuantity == "rbe_dsb") {
-        for (unsigned index = 0; index<fFirstMomentMap.size(); index++) {
-            TsModelRBE_RMF* model = dynamic_cast<TsModelRBE_RMF*>(GetModelForVoxel(index));
-            G4double RBE_DSB = dose_RBE_DSB_Scorer->fFirstMomentMap[index] / doseScorer->fFirstMomentMap[index];
-            fFirstMomentMap[index] = RBE_DSB;  
-        }
-    }
-    return 0;
+	std::vector<G4double> normalizedDose = NormalizeDose(doseScorer->fFirstMomentMap);
+	// RBE Cell survival based on RBE RMF model which uses RBE_DSB as input.  RBE_DSB caluclated with MCDS??  sm/jm Nov 18
+	if (fOutputQuantity == "rbe") {
+		for (unsigned index = 0; index < fFirstMomentMap.size(); index++) {
+			TsModelRBE_RMF* model = dynamic_cast<TsModelRBE_RMF*>(GetModelForVoxel(index));
+			G4double RBE_DSB = dose_RBE_DSB_Scorer->fFirstMomentMap[index] / doseScorer->fFirstMomentMap[index];
+			fFirstMomentMap[index] = model->GetRBE(normalizedDose[index], density * letScorer->fFirstMomentMap[index], RBE_DSB);
+		}
+	}
+	else if (fOutputQuantity == "alpha") {
+		for (unsigned index = 0; index < fFirstMomentMap.size(); index++) {
+			TsModelRBE_RMF* model = dynamic_cast<TsModelRBE_RMF*>(GetModelForVoxel(index));
+			G4double RBE_DSB = dose_RBE_DSB_Scorer->fFirstMomentMap[index] / doseScorer->fFirstMomentMap[index];
+			fFirstMomentMap[index] = model->GetAlpha(density * letScorer->fFirstMomentMap[index], RBE_DSB);
+		}
+	}
+	else if (fOutputQuantity == "beta") {
+		for (unsigned index = 0; index < fFirstMomentMap.size(); index++) {
+			TsModelRBE_RMF* model = dynamic_cast<TsModelRBE_RMF*>(GetModelForVoxel(index));
+			G4double RBE_DSB = dose_RBE_DSB_Scorer->fFirstMomentMap[index] / doseScorer->fFirstMomentMap[index];
+			fFirstMomentMap[index] = model->GetBeta(RBE_DSB);
+		}
+	}
+	else if (fOutputQuantity == "survivalfraction") {
+		for (unsigned index = 0; index < fFirstMomentMap.size(); index++) {
+			TsModelRBE_RMF* model = dynamic_cast<TsModelRBE_RMF*>(GetModelForVoxel(index));
+			G4double RBE_DSB = dose_RBE_DSB_Scorer->fFirstMomentMap[index] / doseScorer->fFirstMomentMap[index];
+			fFirstMomentMap[index] = model->GetSurvivalFraction(normalizedDose[index], density * letScorer->fFirstMomentMap[index], RBE_DSB);
+		}
+	}
+	else if (fOutputQuantity == "rbe_x_dose") {
+		for (unsigned index = 0; index < fFirstMomentMap.size(); index++) {
+			TsModelRBE_RMF* model = dynamic_cast<TsModelRBE_RMF*>(GetModelForVoxel(index));
+			G4double RBE_DSB = dose_RBE_DSB_Scorer->fFirstMomentMap[index] / doseScorer->fFirstMomentMap[index];
+			fFirstMomentMap[index] = normalizedDose[index] * model->GetRBE(normalizedDose[index], density * letScorer->fFirstMomentMap[index], RBE_DSB);
+		}
+	}
+	else if (fOutputQuantity == "rbe_dsb") {
+		for (unsigned index = 0; index < fFirstMomentMap.size(); index++) {
+			TsModelRBE_RMF* model = dynamic_cast<TsModelRBE_RMF*>(GetModelForVoxel(index));
+			G4double RBE_DSB = dose_RBE_DSB_Scorer->fFirstMomentMap[index] / doseScorer->fFirstMomentMap[index];
+			fFirstMomentMap[index] = RBE_DSB;
+		}
+	}
+	return 0;
 }
 
-
-TsModelRBE_RMF::TsModelRBE_RMF(const G4String &cellLine, TsParameterManager* pM, const G4String &)
+TsModelRBE_RMF::TsModelRBE_RMF(const G4String& cellLine, TsParameterManager* pM, const G4String&)
 {
-    G4String name = "Sc/" + cellLine + "/Alphax";
-    fAlphax = pM->GetDoubleParameter(name, "perDose");
+	G4String name = "Sc/" + cellLine + "/Alphax";
+	fAlphax = pM->GetDoubleParameter(name, "perDose");
 
-    name = "Sc/" + cellLine + "/Betax";
-    fBetax = pM->GetDoubleParameter(name, "perDoseSquare");
+	name = "Sc/" + cellLine + "/Betax";
+	fBetax = pM->GetDoubleParameter(name, "perDoseSquare");
 
-    name = "Sc/" + cellLine + "/LETx";
-    fLETx = pM->GetDoubleParameter(name, "force");
+	name = "Sc/" + cellLine + "/LETx";
+	fLETx = pM->GetDoubleParameter(name, "force");
 
-    name = "Sc/" + cellLine + "/NucleusDiameter";
-    fNucleusDiameter = pM->GetDoubleParameter(name, "Length");
+	name = "Sc/" + cellLine + "/NucleusDiameter";
+	fNucleusDiameter = pM->GetDoubleParameter(name, "Length");
 }
-
 
 G4double TsModelRBE_RMF::GetRBE(G4double dose, G4double LETd, G4double RBE_DSB)
 {
-    if (dose == 0)
-        return 0;
+	if (dose == 0)
+		return 0;
 
-    G4double AlphaBetax = fAlphax / fBetax;
-    return sqrt(0.25*AlphaBetax*AlphaBetax + GetAlpha(LETd, RBE_DSB)/fAlphax*AlphaBetax*dose + GetBeta(RBE_DSB)/fBetax*dose*dose) / dose - AlphaBetax/(2*dose);
+	G4double AlphaBetax = fAlphax / fBetax;
+	return sqrt(0.25 * AlphaBetax * AlphaBetax + GetAlpha(LETd, RBE_DSB) / fAlphax * AlphaBetax * dose + GetBeta(RBE_DSB) / fBetax * dose * dose) / dose - AlphaBetax / (2 * dose);
 }
-
 
 G4double TsModelRBE_RMF::GetAlpha(G4double LETd, G4double RBE_DSB)
 {
-    G4double k = 0.204 * gray*um*um*um/keV;
-    G4double zbarF = k * LETd / (fNucleusDiameter * fNucleusDiameter);
-    G4double zbarFx = k * fLETx / (fNucleusDiameter * fNucleusDiameter);
+	G4double k = 0.204 * gray * um * um * um / keV;
+	G4double zbarF = k * LETd / (fNucleusDiameter * fNucleusDiameter);
+	G4double zbarFx = k * fLETx / (fNucleusDiameter * fNucleusDiameter);
 
-    return RBE_DSB * (fAlphax + 2*fBetax * (RBE_DSB*zbarF - zbarFx));
+	return RBE_DSB * (fAlphax + 2 * fBetax * (RBE_DSB * zbarF - zbarFx));
 }
-
 
 G4double TsModelRBE_RMF::GetBeta(G4double RBE_DSB)
 {
-    return fBetax * RBE_DSB * RBE_DSB;
+	return fBetax * RBE_DSB * RBE_DSB;
 }
-
 
 G4double TsModelRBE_RMF::GetSurvivalFraction(G4double dose, G4double LETd, G4double RBE_DSB)
 {
-    return exp(-GetAlpha(LETd, RBE_DSB)*dose - GetBeta(RBE_DSB)*dose*dose);
+	return exp(-GetAlpha(LETd, RBE_DSB) * dose - GetBeta(RBE_DSB) * dose * dose);
 }

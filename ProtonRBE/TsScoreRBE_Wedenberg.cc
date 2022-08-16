@@ -52,58 +52,56 @@
 #include <math.h>
 
 TsScoreRBE_Wedenberg::TsScoreRBE_Wedenberg(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM, G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer)
-: TsVScoreRBE_DoseLET(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
-{;}
-
+	: TsVScoreRBE_DoseLET(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
+{
+	;
+}
 
 TsScoreRBE_Wedenberg::~TsScoreRBE_Wedenberg()
-{;}
-
+{
+	;
+}
 
 TsVModelBiologicalEffect* TsScoreRBE_Wedenberg::ConstructModel(G4String cellLine)
 {
-    return new TsModelRBE_Wedenberg(cellLine, fPm, fOutputQuantity);
+	return new TsModelRBE_Wedenberg(cellLine, fPm, fOutputQuantity);
 }
 
-
-TsModelRBE_Wedenberg::TsModelRBE_Wedenberg(const G4String &cellLine, TsParameterManager* pM, const G4String &outputQuantity)
+TsModelRBE_Wedenberg::TsModelRBE_Wedenberg(const G4String& cellLine, TsParameterManager* pM, const G4String& outputQuantity)
 {
-    fq = 0.434 * gray*um/keV;
+	fq = 0.434 * gray * um / keV;
 
-    G4String name = "Sc/" + cellLine + "/AlphaBetaRatiox";
-    fAlphaBetax = pM->GetDoubleParameter(name, "Dose");
+	G4String name = "Sc/" + cellLine + "/AlphaBetaRatiox";
+	fAlphaBetax = pM->GetDoubleParameter(name, "Dose");
 
-    if (outputQuantity == "alpha" || outputQuantity == "survivalfraction") {
-        name = "Sc/" + cellLine + "/Alphax";
-        fAlphax = pM->GetDoubleParameter(name, "perDose");
-    }
+	if (outputQuantity == "alpha" || outputQuantity == "survivalfraction") {
+		name = "Sc/" + cellLine + "/Alphax";
+		fAlphax = pM->GetDoubleParameter(name, "perDose");
+	}
 
-    if (outputQuantity == "beta" || outputQuantity == "survivalfraction") {
-        name = "Sc/" + cellLine + "/Betax";
-        fBetax = pM->GetDoubleParameter(name, "perDoseSquare");
-    }
+	if (outputQuantity == "beta" || outputQuantity == "survivalfraction") {
+		name = "Sc/" + cellLine + "/Betax";
+		fBetax = pM->GetDoubleParameter(name, "perDoseSquare");
+	}
 }
-
 
 G4double TsModelRBE_Wedenberg::GetRBE(G4double dose, G4double LETd)
 {
-    if (dose == 0)
-        return 0;
+	if (dose == 0)
+		return 0;
 
-    G4double alphaRatio = 1 + fq * LETd / fAlphaBetax;
-    G4double betaRatio = 1;
+	G4double alphaRatio = 1 + fq * LETd / fAlphaBetax;
+	G4double betaRatio = 1;
 
-    return sqrt(0.25*fAlphaBetax*fAlphaBetax + alphaRatio*fAlphaBetax*dose + betaRatio*dose*dose) / dose - fAlphaBetax/(2*dose);
+	return sqrt(0.25 * fAlphaBetax * fAlphaBetax + alphaRatio * fAlphaBetax * dose + betaRatio * dose * dose) / dose - fAlphaBetax / (2 * dose);
 }
-
 
 G4double TsModelRBE_Wedenberg::GetAlpha(G4double LETd)
 {
-    return fAlphax * (1 + fq * LETd / fAlphaBetax);
+	return fAlphax * (1 + fq * LETd / fAlphaBetax);
 }
-
 
 G4double TsModelRBE_Wedenberg::GetBeta(G4double)
 {
-    return fBetax;
+	return fBetax;
 }

@@ -53,19 +53,18 @@
 class TsScoreRBE_McNamara : public TsScoreRBE_MinMax
 {
 public:
-    TsScoreRBE_McNamara(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
-                G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer=false);
-    virtual ~TsScoreRBE_McNamara();
+	TsScoreRBE_McNamara(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
+						G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer = false);
+	virtual ~TsScoreRBE_McNamara();
 
 protected:
-    TsVModelBiologicalEffect* ConstructModel(G4String cellLine);
+	TsVModelBiologicalEffect* ConstructModel(G4String cellLine);
 };
-
 
 class TsModelRBE_McNamara : public TsModelRBE_MinMax
 {
 public:
-    TsModelRBE_McNamara(const G4String &cellLine, TsParameterManager* pM, const G4String &outputQuantity);
+	TsModelRBE_McNamara(const G4String& cellLine, TsParameterManager* pM, const G4String& outputQuantity);
 };
 
 #endif

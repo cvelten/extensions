@@ -51,98 +51,95 @@
 #include "TsParameterManager.hh"
 
 TsScoreDoseAlpha_Tabulated::TsScoreDoseAlpha_Tabulated(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM, G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer)
-: TsVScoreBiologicalEffect(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
+	: TsVScoreBiologicalEffect(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
 {
-    SetUnit("");
+	SetUnit("");
 }
 
-
 TsScoreDoseAlpha_Tabulated::~TsScoreDoseAlpha_Tabulated()
-{;}
-
+{
+	;
+}
 
 TsVModelBiologicalEffect* TsScoreDoseAlpha_Tabulated::ConstructModel(G4String cellLine)
 {
-    G4String modelName = fPm->GetStringParameter(GetFullParmName("ModelName"));
+	G4String modelName = fPm->GetStringParameter(GetFullParmName("ModelName"));
 
-    return new TsModelAlpha_Tabulated(cellLine, modelName, fPm);
+	return new TsModelAlpha_Tabulated(cellLine, modelName, fPm);
 }
-
 
 G4bool TsScoreDoseAlpha_Tabulated::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 {
-    if (!fIsActive) {
-        fSkippedWhileInactive++;
-        return false;
-    }
+	if (!fIsActive) {
+		fSkippedWhileInactive++;
+		return false;
+	}
 
-    G4double edep = aStep->GetTotalEnergyDeposit();
-    if ( edep > 0. ) {
-        ResolveSolid(aStep);
-        G4int index = fComponent->GetIndex((G4Step*)aStep);
-        TsModelAlpha_Tabulated* model = dynamic_cast<TsModelAlpha_Tabulated*>(GetModelForVoxel(index));
+	G4double edep = aStep->GetTotalEnergyDeposit();
+	if (edep > 0.) {
+		ResolveSolid(aStep);
+		G4int index = fComponent->GetIndex((G4Step*)aStep);
+		TsModelAlpha_Tabulated* model = dynamic_cast<TsModelAlpha_Tabulated*>(GetModelForVoxel(index));
 
-        G4int particleZ = aStep->GetTrack()->GetDefinition()->GetAtomicNumber();
-        G4double kineticEnergyPerNucleon = aStep->GetPreStepPoint()->GetKineticEnergy() / aStep->GetTrack()->GetDefinition()->GetAtomicMass();
+		G4int particleZ = aStep->GetTrack()->GetDefinition()->GetAtomicNumber();
+		G4double kineticEnergyPerNucleon = aStep->GetPreStepPoint()->GetKineticEnergy() / aStep->GetTrack()->GetDefinition()->GetAtomicMass();
 
-        G4double alpha = model->InterpolateAlpha(particleZ, kineticEnergyPerNucleon);
-        if (alpha < 0)
-            return false;
+		G4double alpha = model->InterpolateAlpha(particleZ, kineticEnergyPerNucleon);
+		if (alpha < 0)
+			return false;
 
-        G4double density = aStep->GetPreStepPoint()->GetMaterial()->GetDensity();
-        G4double dose = edep / (density * fSolid->GetCubicVolume());
-        G4double doseAlpha = dose * alpha;
+		G4double density = aStep->GetPreStepPoint()->GetMaterial()->GetDensity();
+		G4double dose = edep / (density * fSolid->GetCubicVolume());
+		G4double doseAlpha = dose * alpha;
 
-        doseAlpha *= aStep->GetPreStepPoint()->GetWeight();
-        AccumulateHit(aStep, doseAlpha);
-        return true;
-    }
-    return false;
+		doseAlpha *= aStep->GetPreStepPoint()->GetWeight();
+		AccumulateHit(aStep, doseAlpha);
+		return true;
+	}
+	return false;
 }
 
-
-TsModelAlpha_Tabulated::TsModelAlpha_Tabulated(const G4String &cellLine, const G4String &modelName, TsParameterManager* pM)
+TsModelAlpha_Tabulated::TsModelAlpha_Tabulated(const G4String& cellLine, const G4String& modelName, TsParameterManager* pM)
 {
-    G4String paramPrefix = "Sc/" + cellLine + "/" + modelName + "/";
+	G4String paramPrefix = "Sc/" + cellLine + "/" + modelName + "/";
 
-    G4String name = paramPrefix + "KineticEnergyPerNucleon";
-    fKineticEnergyPerNucleon = pM->GetDoubleVector(name, "Energy");
-    fNumberOfEnergyBins = pM->GetVectorLength(name);
+	G4String name = paramPrefix + "KineticEnergyPerNucleon";
+	fKineticEnergyPerNucleon = pM->GetDoubleVector(name, "Energy");
+	fNumberOfEnergyBins = pM->GetVectorLength(name);
 
-    name = paramPrefix + "ParticleName";
-    G4String* particleName = pM->GetStringVector(name);
-    fNumberOfParticleNames = pM->GetVectorLength(name);
+	name = paramPrefix + "ParticleName";
+	G4String* particleName = pM->GetStringVector(name);
+	fNumberOfParticleNames = pM->GetVectorLength(name);
 
-    name = paramPrefix + "ParticleZ";
-    G4int* particleZ = pM->GetIntegerVector(name);
-    if (pM->GetVectorLength(name) != fNumberOfParticleNames) {
-        G4cerr << "Topas is exiting due to a serious error in scoring." << G4endl;
-        G4cerr << paramPrefix << " has different vector lengths" << G4endl;
-        G4cerr << "for ParticleName and ParticleZ parameters." << G4endl;
-        exit(1);
-    }
+	name = paramPrefix + "ParticleZ";
+	G4int* particleZ = pM->GetIntegerVector(name);
+	if (pM->GetVectorLength(name) != fNumberOfParticleNames) {
+		G4cerr << "Topas is exiting due to a serious error in scoring." << G4endl;
+		G4cerr << paramPrefix << " has different vector lengths" << G4endl;
+		G4cerr << "for ParticleName and ParticleZ parameters." << G4endl;
+		exit(1);
+	}
 
-    for (G4int i=0; i<fNumberOfParticleNames; i++) {
+	for (G4int i = 0; i < fNumberOfParticleNames; i++) {
 
-        if (fAlpha.count(particleZ[i]) > 0) {
-            G4cerr << "Topas is exiting due to a serious error in scoring." << G4endl;
-            G4cerr << paramPrefix << "ParticleZ contains duplicate entries." << G4endl;
-            exit(1);
-        }
-        fAlpha[particleZ[i]] = pM->GetDoubleVector(paramPrefix + particleName[i] + "/Alpha", "perDose");
-    }
+		if (fAlpha.count(particleZ[i]) > 0) {
+			G4cerr << "Topas is exiting due to a serious error in scoring." << G4endl;
+			G4cerr << paramPrefix << "ParticleZ contains duplicate entries." << G4endl;
+			exit(1);
+		}
+		fAlpha[particleZ[i]] = pM->GetDoubleVector(paramPrefix + particleName[i] + "/Alpha", "perDose");
+	}
 }
-
 
 G4double TsModelAlpha_Tabulated::InterpolateAlpha(G4int particleZ, G4double kineticEnergyPerNucleon)
 {
-    if (fAlpha.count(particleZ)==0)
-        return -1;
+	if (fAlpha.count(particleZ) == 0)
+		return -1;
 
-    G4int i=0;
-    while (fKineticEnergyPerNucleon[i] < kineticEnergyPerNucleon && i < fNumberOfEnergyBins-1)
-        i++;
-    i--;
+	G4int i = 0;
+	while (fKineticEnergyPerNucleon[i] < kineticEnergyPerNucleon && i < fNumberOfEnergyBins - 1)
+		i++;
+	i--;
 
-    return fAlpha[particleZ][i] + ( (kineticEnergyPerNucleon - fKineticEnergyPerNucleon[i]) / (fKineticEnergyPerNucleon[i+1] - fKineticEnergyPerNucleon[i]) * (fAlpha[particleZ][i+1] - fAlpha[particleZ][i]) );
+	return fAlpha[particleZ][i] + ((kineticEnergyPerNucleon - fKineticEnergyPerNucleon[i]) / (fKineticEnergyPerNucleon[i + 1] - fKineticEnergyPerNucleon[i]) * (fAlpha[particleZ][i + 1] - fAlpha[particleZ][i]));
 }

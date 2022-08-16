@@ -51,110 +51,108 @@
 #include "TsParameterManager.hh"
 
 TsVScoreRBE::TsVScoreRBE(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
-                         G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer)
-: TsVScoreBiologicalEffect(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
+						 G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer)
+	: TsVScoreBiologicalEffect(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
 {
-    fOutputQuantity = fPm->GetStringParameter(GetFullParmName("OutputQuantity"));
-    fOutputQuantity.toLower();
-    // OutputQuantity aliases
-    if (fOutputQuantity == "sf")
-        fOutputQuantity = "survivalfraction";
-    if (fOutputQuantity == "rwd") // RBE weighted dose (RWD)
-        fOutputQuantity = "rbe_x_dose";
+	fOutputQuantity = fPm->GetStringParameter(GetFullParmName("OutputQuantity"));
+	fOutputQuantity.toLower();
+	// OutputQuantity aliases
+	if (fOutputQuantity == "sf")
+		fOutputQuantity = "survivalfraction";
+	if (fOutputQuantity == "rwd") // RBE weighted dose (RWD)
+		fOutputQuantity = "rbe_x_dose";
 
+	fIsSimultaneousExposure = true;
+	if (fPm->ParameterExists(GetFullParmName("SimultaneousExposure")))
+		fIsSimultaneousExposure = fPm->GetBooleanParameter(GetFullParmName("SimultaneousExposure"));
 
-    fIsSimultaneousExposure = true;
-    if (fPm->ParameterExists(GetFullParmName("SimultaneousExposure")))
-        fIsSimultaneousExposure = fPm->GetBooleanParameter(GetFullParmName("SimultaneousExposure"));
+	fPrescribedDose = fPm->GetDoubleParameter(GetFullParmName("PrescribedDose"), "Dose");
 
-    fPrescribedDose = fPm->GetDoubleParameter(GetFullParmName("PrescribedDose"), "Dose");
+	fPrescribedDoseMetric = "Max";
+	if (fPm->ParameterExists(GetFullParmName("PrescribedDoseMetric")))
+		fPrescribedDoseMetric = fPm->GetStringParameter(GetFullParmName("PrescribedDoseMetric"));
+	fPrescribedDoseMetric.toLower();
+	if (fPrescribedDoseMetric != "max" && fPrescribedDoseMetric != "mean" && fPrescribedDoseMetric != "d90") {
+		G4cerr << "Topas is exiting due to a serious error in scoring setup." << G4endl;
+		G4cerr << "Invalid " << GetFullParmName("PrescribedDoseMetric") << " parameter value: " << fPrescribedDoseMetric << G4endl;
+		G4cerr << "Valid values are: Max, Mean and D90." << G4endl;
+		exit(1);
+	}
 
-    fPrescribedDoseMetric = "Max";
-    if (fPm->ParameterExists(GetFullParmName("PrescribedDoseMetric")))
-        fPrescribedDoseMetric = fPm->GetStringParameter(GetFullParmName("PrescribedDoseMetric"));
-    fPrescribedDoseMetric.toLower();
-    if (fPrescribedDoseMetric != "max" && fPrescribedDoseMetric != "mean" && fPrescribedDoseMetric != "d90") {
-        G4cerr << "Topas is exiting due to a serious error in scoring setup." << G4endl;
-        G4cerr << "Invalid " << GetFullParmName("PrescribedDoseMetric") << " parameter value: " << fPrescribedDoseMetric << G4endl;
-        G4cerr << "Valid values are: Max, Mean and D90." << G4endl;
-        exit(1);
-    }
+	if (fPm->ParameterExists(GetFullParmName("PrescribedDoseStructure"))) {
+		fPrescribedDoseStructureName = fPm->GetStringParameter(GetFullParmName("PrescribedDoseStructure"));
 
-    if (fPm->ParameterExists(GetFullParmName("PrescribedDoseStructure"))) {
-        fPrescribedDoseStructureName = fPm->GetStringParameter(GetFullParmName("PrescribedDoseStructure"));
-
-        if (!fIsSimultaneousExposure) {
-            G4cerr << "Topas is exiting due to a serious error in scoring setup." << G4endl;
-            G4cerr << "Scorer \"" << GetName() << "\" is using both SimultaneousExposure" << G4endl;
-            G4cerr << "and PrescribedDoseStructure parameters, but these are mutually exclusive." << G4endl;
-            exit(1);
-        }
-    }
+		if (!fIsSimultaneousExposure) {
+			G4cerr << "Topas is exiting due to a serious error in scoring setup." << G4endl;
+			G4cerr << "Scorer \"" << GetName() << "\" is using both SimultaneousExposure" << G4endl;
+			G4cerr << "and PrescribedDoseStructure parameters, but these are mutually exclusive." << G4endl;
+			exit(1);
+		}
+	}
 }
-
 
 TsVScoreRBE::~TsVScoreRBE()
-{;}
-
-
-std::vector<G4double> TsVScoreRBE::NormalizeDose(const std::vector<G4double> &dose)
 {
-    std::vector<G4double> normalizedDose;
-
-    if (fIsSimultaneousExposure) {
-
-        G4double scaleFactor = 1.0;
-
-        if (fPrescribedDoseStructureName.isNull())
-            scaleFactor = GetScaleFactor(dose);
-        else {
-            G4int prescribedDoseStructureID = fComponent->GetStructureID(fPrescribedDoseStructureName);
-
-            std::vector<G4double> structureDose;
-            for (unsigned index = 0; index<dose.size(); index++)
-                if (fComponent->IsInNamedStructure(prescribedDoseStructureID, index))
-                    structureDose.push_back(dose[index]);
-
-            scaleFactor = GetScaleFactor(structureDose);
-        }
-
-        for (std::vector<G4double>::const_iterator it = dose.begin(); it != dose.end(); ++it)
-            normalizedDose.push_back(*it * scaleFactor);
-    }
-    else {
-        normalizedDose = std::vector<G4double>(dose.size(), fPrescribedDose);
-    }
-
-    return normalizedDose;
+	;
 }
 
-
-G4double TsVScoreRBE::GetScaleFactor(const std::vector<G4double> &dose)
+std::vector<G4double> TsVScoreRBE::NormalizeDose(const std::vector<G4double>& dose)
 {
-    G4double refDose = 0;
+	std::vector<G4double> normalizedDose;
 
-    if (fPrescribedDoseMetric == "max") {
-        refDose = *std::max_element(dose.begin(), dose.end());
-    }
-    else if (fPrescribedDoseMetric == "mean") {
-        refDose = 0;
-        for (std::vector<G4double>::const_iterator it = dose.begin(); it != dose.end(); ++it)
-            refDose += *it;
-        refDose /= dose.size();
-    }
-    else if (fPrescribedDoseMetric == "d90") {
-        std::vector<G4double> dose_copy = dose;
+	if (fIsSimultaneousExposure) {
 
-        const size_t i90 = (1-0.9) * dose.size();
-        std::nth_element(dose_copy.begin(), dose_copy.begin() + i90, dose_copy.end());
-        refDose = dose_copy[i90];
-    }
+		G4double scaleFactor = 1.0;
 
-    if (refDose == 0) {
-        G4cerr << "Topas is exiting due to a serious error in scoring." << G4endl;
-        G4cerr << "Scorer \"" << GetName() << "\" attempted to use a null reference dose." << G4endl;
-        exit(1);
-    }
+		if (fPrescribedDoseStructureName.isNull())
+			scaleFactor = GetScaleFactor(dose);
+		else {
+			G4int prescribedDoseStructureID = fComponent->GetStructureID(fPrescribedDoseStructureName);
 
-    return fPrescribedDose / refDose;
+			std::vector<G4double> structureDose;
+			for (unsigned index = 0; index < dose.size(); index++)
+				if (fComponent->IsInNamedStructure(prescribedDoseStructureID, index))
+					structureDose.push_back(dose[index]);
+
+			scaleFactor = GetScaleFactor(structureDose);
+		}
+
+		for (std::vector<G4double>::const_iterator it = dose.begin(); it != dose.end(); ++it)
+			normalizedDose.push_back(*it * scaleFactor);
+	}
+	else {
+		normalizedDose = std::vector<G4double>(dose.size(), fPrescribedDose);
+	}
+
+	return normalizedDose;
+}
+
+G4double TsVScoreRBE::GetScaleFactor(const std::vector<G4double>& dose)
+{
+	G4double refDose = 0;
+
+	if (fPrescribedDoseMetric == "max") {
+		refDose = *std::max_element(dose.begin(), dose.end());
+	}
+	else if (fPrescribedDoseMetric == "mean") {
+		refDose = 0;
+		for (std::vector<G4double>::const_iterator it = dose.begin(); it != dose.end(); ++it)
+			refDose += *it;
+		refDose /= dose.size();
+	}
+	else if (fPrescribedDoseMetric == "d90") {
+		std::vector<G4double> dose_copy = dose;
+
+		const size_t i90 = (1 - 0.9) * dose.size();
+		std::nth_element(dose_copy.begin(), dose_copy.begin() + i90, dose_copy.end());
+		refDose = dose_copy[i90];
+	}
+
+	if (refDose == 0) {
+		G4cerr << "Topas is exiting due to a serious error in scoring." << G4endl;
+		G4cerr << "Scorer \"" << GetName() << "\" attempted to use a null reference dose." << G4endl;
+		exit(1);
+	}
+
+	return fPrescribedDose / refDose;
 }

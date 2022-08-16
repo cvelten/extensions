@@ -52,54 +52,52 @@
 #include <math.h>
 
 TsScoreRBE_Chen::TsScoreRBE_Chen(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM, G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer)
-: TsVScoreRBE_DoseLET(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
-{;}
-
+	: TsVScoreRBE_DoseLET(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
+{
+	;
+}
 
 TsScoreRBE_Chen::~TsScoreRBE_Chen()
-{;}
-
+{
+	;
+}
 
 TsVModelBiologicalEffect* TsScoreRBE_Chen::ConstructModel(G4String cellLine)
 {
-    return new TsModelRBE_Chen(cellLine, fPm, fOutputQuantity);
+	return new TsModelRBE_Chen(cellLine, fPm, fOutputQuantity);
 }
 
-
-TsModelRBE_Chen::TsModelRBE_Chen(const G4String &cellLine, TsParameterManager* pM, const G4String &outputQuantity)
+TsModelRBE_Chen::TsModelRBE_Chen(const G4String& cellLine, TsParameterManager* pM, const G4String& outputQuantity)
 {
-    fAlpha0 = 0.1 * (1/gray);
-    fLambda1 = 0.0013 * (um/keV)*(um/keV);
-    fLambda2 = 0.045 * (um/keV)*gray;
+	fAlpha0 = 0.1 * (1 / gray);
+	fLambda1 = 0.0013 * (um / keV) * (um / keV);
+	fLambda2 = 0.045 * (um / keV) * gray;
 
-    if (outputQuantity == "rbe" || outputQuantity == "survivalfraction" || outputQuantity == "rbe_x_dose") {
-        G4String name = "Sc/" + cellLine + "/Alphax";
-        fAlphax = pM->GetDoubleParameter(name, "perDose");
-    }
+	if (outputQuantity == "rbe" || outputQuantity == "survivalfraction" || outputQuantity == "rbe_x_dose") {
+		G4String name = "Sc/" + cellLine + "/Alphax";
+		fAlphax = pM->GetDoubleParameter(name, "perDose");
+	}
 
-    if (outputQuantity == "rbe" || outputQuantity == "survivalfraction" || outputQuantity == "rbe_x_dose" || outputQuantity == "beta") {
-        G4String name = "Sc/" + cellLine + "/Betax";
-        fBetax = pM->GetDoubleParameter(name, "perDoseSquare");
-    }
+	if (outputQuantity == "rbe" || outputQuantity == "survivalfraction" || outputQuantity == "rbe_x_dose" || outputQuantity == "beta") {
+		G4String name = "Sc/" + cellLine + "/Betax";
+		fBetax = pM->GetDoubleParameter(name, "perDoseSquare");
+	}
 }
-
 
 G4double TsModelRBE_Chen::GetRBE(G4double dose, G4double LETd)
 {
-    if (dose == 0)
-        return 0;
+	if (dose == 0)
+		return 0;
 
-    return (sqrt(fAlphax*fAlphax + 4*fBetax*dose * (GetAlpha(LETd) + GetBeta(LETd)*dose)) - fAlphax) / (2*fBetax*dose);
+	return (sqrt(fAlphax * fAlphax + 4 * fBetax * dose * (GetAlpha(LETd) + GetBeta(LETd) * dose)) - fAlphax) / (2 * fBetax * dose);
 }
-
 
 G4double TsModelRBE_Chen::GetAlpha(G4double LETd)
 {
-    return fAlpha0 + (1 - exp(-fLambda1*LETd*LETd)) / (fLambda2*LETd);
+	return fAlpha0 + (1 - exp(-fLambda1 * LETd * LETd)) / (fLambda2 * LETd);
 }
-
 
 G4double TsModelRBE_Chen::GetBeta(G4double)
 {
-    return fBetax;
+	return fBetax;
 }

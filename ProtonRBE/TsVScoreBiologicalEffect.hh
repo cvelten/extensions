@@ -55,31 +55,30 @@ class TsVModelBiologicalEffect;
 class TsVScoreBiologicalEffect : public TsVBinnedScorer
 {
 public:
-    TsVScoreBiologicalEffect(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager *eM,
-                G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer);
-    virtual ~TsVScoreBiologicalEffect();
+	TsVScoreBiologicalEffect(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
+							 G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer);
+	virtual ~TsVScoreBiologicalEffect();
 
 protected:
-    virtual void PostConstructor();
-    virtual G4bool ProcessHits(G4Step*,G4TouchableHistory*) = 0;
+	virtual void PostConstructor();
+	virtual G4bool ProcessHits(G4Step*, G4TouchableHistory*) = 0;
 
-    virtual TsVModelBiologicalEffect* ConstructModel(G4String cellLine) = 0;
-    TsVModelBiologicalEffect* GetModelForVoxel(G4int index);
+	virtual TsVModelBiologicalEffect* ConstructModel(G4String cellLine) = 0;
+	TsVModelBiologicalEffect* GetModelForVoxel(G4int index);
 
-    G4String fDefaultCellLine;
-    std::vector<G4int> fRTStructureIDs;
-    std::vector<G4String> fRTStructureNames;
-    std::vector<G4String> fRTStructureCellLines;
-    std::map<G4int, TsVModelBiologicalEffect*> fModelsByStructureID;
-    std::map<G4String, TsVModelBiologicalEffect*> fModelsByCellLine;
+	G4String fDefaultCellLine;
+	std::vector<G4int> fRTStructureIDs;
+	std::vector<G4String> fRTStructureNames;
+	std::vector<G4String> fRTStructureCellLines;
+	std::map<G4int, TsVModelBiologicalEffect*> fModelsByStructureID;
+	std::map<G4String, TsVModelBiologicalEffect*> fModelsByCellLine;
 };
-
 
 class TsVModelBiologicalEffect
 {
 public:
-    TsVModelBiologicalEffect() {;}
-    virtual ~TsVModelBiologicalEffect() {;}
+	TsVModelBiologicalEffect() { ; }
+	virtual ~TsVModelBiologicalEffect() { ; }
 };
 
 #endif

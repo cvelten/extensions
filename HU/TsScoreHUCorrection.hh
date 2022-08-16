@@ -57,19 +57,18 @@ class TsScoreHUCorrection : public TsVBinnedScorer
 {
 public:
 	TsScoreHUCorrection(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
-					   G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer);
-    
-	
+						G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer);
+
 	virtual ~TsScoreHUCorrection();
-	
-	G4bool ProcessHits(G4Step*,G4TouchableHistory*);
+
+	G4bool ProcessHits(G4Step*, G4TouchableHistory*);
 
 private:
 	G4EmCalculator fEmCalculator;
 	G4Material* fWater;
 	G4ParticleDefinition* fProton;
-    G4int fFlag;
-    G4String fFileName;
-    std::ofstream fFile;
+	G4int fFlag;
+	G4String fFileName;
+	std::ofstream fFile;
 };
 #endif
