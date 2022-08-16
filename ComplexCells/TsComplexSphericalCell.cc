@@ -13,8 +13,8 @@
 // #include "Randomize.hh"
 
 TsComplexSphericalCell::TsComplexSphericalCell(TsParameterManager* pM, TsExtensionManager* eM, TsMaterialManager* mM, TsGeometryManager* gM, TsVGeometryComponent* parentComponent, G4VPhysicalVolume* parentVolume, G4String& name)
-	: TsSphereWithChildren(pM, eM, mM, gM, parentComponent, parentVolume, name),
-	  fNucleusRadius()
+	: TsVComponentWithChildren(pM, eM, mM, gM, parentComponent, parentVolume, name),
+	  fCellRadius(), fNucleusRadius()
 {}
 
 G4VPhysicalVolume* TsComplexSphericalCell::Construct()
@@ -25,9 +25,9 @@ G4VPhysicalVolume* TsComplexSphericalCell::Construct()
 	//              Envelope Geometry : spherical cell
 	//***********************************************************************
 
-	fRadius = fPm->GetDoubleParameter(GetFullParmName("Radius"), "Length");
+	fCellRadius = fPm->GetDoubleParameter(GetFullParmName("Radius"), "Length");
 
-	G4Orb* cellSolid = new G4Orb(fName, fRadius);
+	G4Orb* cellSolid = new G4Orb(fName, fCellRadius);
 	fEnvelopeLog = CreateLogicalVolume(cellSolid);
 	fEnvelopePhys = CreatePhysicalVolume(fEnvelopeLog);
 

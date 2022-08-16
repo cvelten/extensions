@@ -13,10 +13,10 @@
 // #include "Randomize.hh"
 
 TsLysosome::TsLysosome(TsParameterManager* pM, TsExtensionManager* eM, TsMaterialManager* mM, TsGeometryManager* gM, TsVGeometryComponent* parentComponent, G4VPhysicalVolume* parentVolume, G4String& name)
-	: TsSphereWithChildren(pM, eM, mM, gM, parentComponent, parentVolume, name)
+	: TsVComponentWithChildren(pM, eM, mM, gM, parentComponent, parentVolume, name)
 {
 	fIsDividable = false;
-	fCanCalculateSurfaceArea = false;
+	fCanCalculateSurfaceArea = true;
 }
 
 G4VPhysicalVolume* TsLysosome::Construct()
@@ -91,6 +91,49 @@ G4VPhysicalVolume* TsLysosome::Construct()
 	return fEnvelopePhys;
 }
 
-void TsLysosome::ConstructLysosome()
+TsVGeometryComponent::SurfaceType TsLysosome::GetSurfaceID(G4String surfaceName)
 {
+	SurfaceType surfaceID;
+	G4String surfaceNameLower = surfaceName;
+	surfaceNameLower.toLower();
+	if (surfaceNameLower == "outercurvedsurface")
+		surfaceID = OuterCurvedSurface;
+	else if (surfaceNameLower == "anysurface")
+		surfaceID = AnySurface;
+	else {
+		surfaceID = None;
+		G4cerr << "Topas is exiting due to a serious error in scoring." << G4endl;
+		G4cerr << "Scorer name: " << GetName() << " has unknown surface name: " << surfaceName << G4endl;
+		fPm->AbortSession(1);
+	}
+	return surfaceID;
+}
+
+G4bool TsLysosome::IsOnBoundary(G4ThreeVector localpos, G4VSolid* solid, SurfaceType surfaceID)
+{
+	switch (surfaceID)
+	{
+	case AnySurface:
+	case OuterCurvedSurface:
+		return ((G4Ellipsoid*)solid)->Inside(localpos) == kSurface;
+	default:
+		G4cerr << "Topas is exiting due to a serious error." << G4endl;
+		G4cerr << "TsLysosome::IsOnBoundary called for unknown surface of component: " << fName << G4endl;
+		fPm->AbortSession(1);
+		return false;
+	}
+}
+
+G4double TsLysosome::GetAreaOfSelectedSurface(G4VSolid* solid, SurfaceType surfaceID, G4int, G4int, G4int copyNo)
+{
+	switch (surfaceID) {
+	case AnySurface:
+	case OuterCurvedSurface:
+		return ((G4Ellipsoid*)solid)->GetSurfaceArea();
+	default:
+		G4cerr << "Topas is exiting due to a serious error." << G4endl;
+		G4cerr << "TsLysosome::GetAreaOfSelectedSurface called for unknown surface of component: " << fName << G4endl;
+		fPm->AbortSession(1);
+		return 0.;
+	}
 }

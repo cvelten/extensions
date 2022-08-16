@@ -3,9 +3,9 @@
 #ifndef TsComplexSphericalCell_hh
 #define TsComplexSphericalCell_hh
 
-#include "TsSphereWithChildren.hh"
+#include "TsVComponentWithChildren.hh"
 
-class TsComplexSphericalCell : public TsSphereWithChildren
+class TsComplexSphericalCell : public TsVComponentWithChildren
 {
 public:
 	TsComplexSphericalCell(TsParameterManager* pM, TsExtensionManager* eM, TsMaterialManager* mM, TsGeometryManager* gM,

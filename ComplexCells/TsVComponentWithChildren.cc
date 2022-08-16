@@ -1,6 +1,6 @@
-// Component for TsSphereWithChildren
+// Extra Class for TsVComponentWithChildren
 
-#include "TsSphereWithChildren.hh"
+#include "TsVComponentWithChildren.hh"
 
 #include "G4VPhysicalVolume.hh"
 #include "TsParameterManager.hh"
@@ -15,33 +15,32 @@
 
 #include <vector>
 
-TsSphereWithChildren::TsSphereWithChildren(TsParameterManager* pM, TsExtensionManager* eM, TsMaterialManager* mM, TsGeometryManager* gM, TsVGeometryComponent* parentComponent, G4VPhysicalVolume* parentVolume, G4String& name)
-	: TsVGeometryComponent(pM, eM, mM, gM, parentComponent, parentVolume, name),
-	  fRadius()
+TsVComponentWithChildren::TsVComponentWithChildren(TsParameterManager* pM, TsExtensionManager* eM, TsMaterialManager* mM, TsGeometryManager* gM, TsVGeometryComponent* parentComponent, G4VPhysicalVolume* parentVolume, G4String& name)
+	: TsVGeometryComponent(pM, eM, mM, gM, parentComponent, parentVolume, name)
 {}
 
-G4VPhysicalVolume* TsSphereWithChildren::Construct()
-{
-	BeginConstruction();
+// G4VPhysicalVolume* TsVComponentWithChildren::Construct()
+// {
+// 	BeginConstruction();
 
-	fRadius = fPm->GetDoubleParameter(GetFullParmName("Radius"), "Length");
+// 	fRadius = fPm->GetDoubleParameter(GetFullParmName("Radius"), "Length");
 
-	G4Orb* solid = new G4Orb(fName, fRadius);
-	fEnvelopeLog = CreateLogicalVolume(solid);
-	fEnvelopePhys = CreatePhysicalVolume(fEnvelopeLog);
+// 	G4Orb* solid = new G4Orb(fName, fRadius);
+// 	fEnvelopeLog = CreateLogicalVolume(solid);
+// 	fEnvelopePhys = CreatePhysicalVolume(fEnvelopeLog);
 
-	if (fPm->ParameterExists(GetFullParmName("Spheres", "N")))
-		ConstructSphericalChildren("Spheres");
+// 	if (fPm->ParameterExists(GetFullParmName("Spheres", "N")))
+// 		ConstructSphericalChildren("Spheres");
 
-	if (fPm->ParameterExists(GetFullParmName("Ellipsoids", "N")))
-		ConstructSphericalChildren("Ellipsoids");
+// 	if (fPm->ParameterExists(GetFullParmName("Ellipsoids", "N")))
+// 		ConstructSphericalChildren("Ellipsoids");
 
-	InstantiateChildren(fEnvelopePhys);
+// 	InstantiateChildren(fEnvelopePhys);
 
-	return fEnvelopePhys;
-}
+// 	return fEnvelopePhys;
+// }
 
-std::vector<G4VPhysicalVolume*> TsSphereWithChildren::ConstructSphericalChildren(G4String name, G4double radialOffset)
+std::vector<G4VPhysicalVolume*> TsVComponentWithChildren::ConstructSphericalChildren(G4String name, G4double radialOffset)
 {
 	if (!fPm->ParameterExists(GetFullParmName(name, "N")))
 		return std::vector<G4VPhysicalVolume*>();
@@ -51,7 +50,7 @@ std::vector<G4VPhysicalVolume*> TsSphereWithChildren::ConstructSphericalChildren
 	return ConstructSphericalChildren(name, n, radius, radialOffset);
 }
 
-std::vector<G4VPhysicalVolume*> TsSphereWithChildren::ConstructSphericalChildren(G4String name, G4int n, G4double radius, G4double radialOffset, G4VPhysicalVolume* parent, G4bool independentLogicals)
+std::vector<G4VPhysicalVolume*> TsVComponentWithChildren::ConstructSphericalChildren(G4String name, G4int n, G4double radius, G4double radialOffset, G4VPhysicalVolume* parent, G4bool independentLogicals)
 {
 	if (fPm->ParameterExists(GetFullParmName(name, "N")))
 		n = fPm->GetIntegerParameter(GetFullParmName(name, "N"));
@@ -73,7 +72,7 @@ std::vector<G4VPhysicalVolume*> TsSphereWithChildren::ConstructSphericalChildren
 	return RandomlyPlaceSolid(solid, n, radialOffset, parent, independentLogicals, name);
 }
 
-std::vector<G4VPhysicalVolume*> TsSphereWithChildren::ConstructEllipsoidalChildren(G4String name, G4double radialOffset)
+std::vector<G4VPhysicalVolume*> TsVComponentWithChildren::ConstructEllipsoidalChildren(G4String name, G4double radialOffset)
 {
 	if (!fPm->ParameterExists(GetFullParmName(name, "N")))
 		return std::vector<G4VPhysicalVolume*>();
@@ -85,7 +84,7 @@ std::vector<G4VPhysicalVolume*> TsSphereWithChildren::ConstructEllipsoidalChildr
 	return ConstructEllipsoidalChildren(name, n, semiAxisA, semiAxisB, semiAxisC, radialOffset);
 }
 
-std::vector<G4VPhysicalVolume*> TsSphereWithChildren::ConstructEllipsoidalChildren(G4String name, G4int n, G4double semiAxisA, G4double semiAxisB, G4double semiAxisC, G4double radialOffset, G4VPhysicalVolume* parent, G4bool independentLogicals)
+std::vector<G4VPhysicalVolume*> TsVComponentWithChildren::ConstructEllipsoidalChildren(G4String name, G4int n, G4double semiAxisA, G4double semiAxisB, G4double semiAxisC, G4double radialOffset, G4VPhysicalVolume* parent, G4bool independentLogicals)
 {
 	if (n <= 0 && fPm->ParameterExists(GetFullParmName(name, "N")))
 		n = fPm->GetIntegerParameter(GetFullParmName(name, "N"));
@@ -109,7 +108,7 @@ std::vector<G4VPhysicalVolume*> TsSphereWithChildren::ConstructEllipsoidalChildr
 	return RandomlyPlaceSolid(solid, n, radialOffset, parent, independentLogicals, name);
 }
 
-std::vector<G4VPhysicalVolume*> TsSphereWithChildren::RandomlyPlaceSolid(G4VSolid* solid, G4int n, G4double radialOffset, G4VPhysicalVolume* parent, G4bool independentLogicals, G4String name)
+std::vector<G4VPhysicalVolume*> TsVComponentWithChildren::RandomlyPlaceSolid(G4VSolid* solid, G4int n, G4double radialOffset, G4VPhysicalVolume* parent, G4bool independentLogicals, G4String name)
 {
 	if (parent == nullptr)
 		parent = fEnvelopePhys;

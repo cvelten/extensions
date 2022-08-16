@@ -3,9 +3,9 @@
 #ifndef TsLysosome_hh
 #define TsLysosome_hh
 
-#include "TsSphereWithChildren.hh"
+#include "TsVComponentWithChildren.hh"
 
-class TsLysosome : public TsSphereWithChildren
+class TsLysosome : public TsVComponentWithChildren
 {
 public:
 	TsLysosome(TsParameterManager* pM, TsExtensionManager* eM, TsMaterialManager* mM, TsGeometryManager* gM,
@@ -14,10 +14,11 @@ public:
 
 	G4VPhysicalVolume* Construct() override;
 
-protected:
-	virtual void ConstructLysosome();
+	SurfaceType GetSurfaceID(G4String surfaceName) override;
+	G4bool IsOnBoundary(G4ThreeVector localpos, G4VSolid* solid, SurfaceType surfaceID) override;
+	G4double GetAreaOfSelectedSurface(G4VSolid* solid, SurfaceType surfaceID, G4int i, G4int j, G4int k) override;
 
-protected:
+private:
 	G4double fSemiAxisA, fSemiAxisB, fSemiAxisC;
 };
 
