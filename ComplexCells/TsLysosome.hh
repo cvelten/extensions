@@ -21,8 +21,10 @@ public:
 private:
 	G4double fSemiAxisA, fSemiAxisB, fSemiAxisC;
 
-	const G4int fNanomaterialMaxN = 500;
-	const G4double fNanomaterialRadiusPerComplexRadius = 0.075;
+	G4double fNanomaterialRadius;
+	std::vector<G4int> fNanomaterialNumbers;
+
+	const G4double fNanomaterialRadiusDefault = 25 * CLHEP::nm;
 };
 
 #endif

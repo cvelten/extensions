@@ -14,9 +14,11 @@
 
 #define um3 (um * um * um)
 #define nm3 (nm * nm * nm)
+#define micromolar (1E-3 * mole / m3)
 
 TsLysosome::TsLysosome(TsParameterManager* pM, TsExtensionManager* eM, TsMaterialManager* mM, TsGeometryManager* gM, TsVGeometryComponent* parentComponent, G4VPhysicalVolume* parentVolume, G4String& name)
-	: TsVComponentWithChildren(pM, eM, mM, gM, parentComponent, parentVolume, name)
+	: TsVComponentWithChildren(pM, eM, mM, gM, parentComponent, parentVolume, name),
+	  fNanomaterialRadius(fNanomaterialRadiusDefault)
 {
 	fIsDividable = false;
 	fCanCalculateSurfaceArea = true;
@@ -44,24 +46,36 @@ G4VPhysicalVolume* TsLysosome::Construct()
 	auto rChildren = fPm->ParameterExists(GetFullParmName("Complexes/Radius")) ? fPm->GetDoubleParameter(GetFullParmName("Complexes", "Radius"), "Length") : 0.1 * micrometer;
 
 	// If no nanomaterial densities are given, they are all -0-
-	auto nanomaterialDensities = std::vector<G4double>(nChildren, 0.0);
-	if (fPm->ParameterExists(GetFullParmName("Complexes", "NanomaterialDensity")))
+	fNanomaterialNumbers = std::vector<G4int>(nChildren, 0.0);
+	if (fPm->ParameterExists(GetFullParmName("Complexes/Nanomaterial", "Number")) || fPm->ParameterExists(GetFullParmName("Complexes/Nanomaterial", "Numbers")))
 	{
-		nanomaterialDensities = std::vector<G4double>(nChildren, fPm->GetUnitlessParameter(GetFullParmName("Complexes", "NanomaterialDensity")));
-	}
-	if (fPm->ParameterExists(GetFullParmName("Complexes", "NanomaterialDensities")))
-	{
-		if (fVerbosity > 0 && fPm->ParameterExists(GetFullParmName("Complexes", "NanomaterialDensity")))
-			G4cerr << "Nanomaterial density was initially set through " << GetFullParmName("Complexes", "NanomaterialDensity")
-				   << "but " << GetFullParmName("Complexes", "NanomaterialDensities") << " is also provided, so we'll use that instead!"
-				   << G4endl;
+		if (fPm->ParameterExists(GetFullParmName("Complexes/Nanomaterial", "Number")))
+		{
+			fNanomaterialNumbers = std::vector<G4int>(nChildren, fPm->GetIntegerParameter(GetFullParmName("Complexes/Nanomaterial", "Number")));
+		}
+		if (fPm->ParameterExists(GetFullParmName("Complexes/Nanomaterial", "Numbers")))
+		{
+			if (fVerbosity > 0 && fPm->ParameterExists(GetFullParmName("Complexes/Nanomaterial", "Number")))
+				G4cerr << "Nanomaterial density was initially set through " << GetFullParmName("Complexes/Nanomaterial", "Number")
+					   << "but " << GetFullParmName("Complexes/Nanomaterial", "Numbers") << " is also provided, so we'll use that instead!"
+					   << G4endl;
 
-		auto arr = fPm->GetUnitlessVector(GetFullParmName("Complexes", "NanomaterialDensities"));
-		nanomaterialDensities = std::vector<G4double>(arr, arr + nChildren);
+			// Numbers
+			auto arr = fPm->GetIntegerVector(GetFullParmName("Complexes/Nanomaterial", "Numbers"));
+			fNanomaterialNumbers = std::vector<G4int>(arr, arr + nChildren);
 
-		if (!std::all_of(nanomaterialDensities.cbegin(), nanomaterialDensities.cend(), [](G4double n) { return n >= 0 && n <= 1; }))
-			OutOfRange(GetFullParmName("Complexes", "NanomaterialDensities"), "must have values within [0, 1]");
-
+			auto max_num = std::floor(std::pow(rChildren / fNanomaterialRadius, 3));
+			if (!std::all_of(fNanomaterialNumbers.cbegin(), fNanomaterialNumbers.cend(), [&max_num](G4double n) { return n >= 0 && n <= max_num; }))
+				OutOfRange(GetFullParmName("Complexes", "NanomaterialNumbers"), G4String("must have values within [0, ") + std::to_string(max_num));
+		}
+		// Radius
+		if (fPm->ParameterExists(GetFullParmName("Complexes/Nanomaterial", "Radius")))
+			fNanomaterialRadius = fPm->GetDoubleParameter(GetFullParmName("Complexes/Nanomaterial", "Radius"), "Length");
+		else
+		{
+			G4cerr << GetFullParmName("Complexes/Nanomaterial", "Radius") << " was not given, so we'll assume " << fNanomaterialRadiusDefault / nm << G4endl;
+			fNanomaterialRadius = fNanomaterialRadiusDefault;
+		}
 		// Add color & drawing style if not specified
 		if (!fPm->ParameterExists(GetFullParmName("Complexes/Nanomaterial", "Color")))
 			fPm->AddParameter("s:" + GetFullParmName("Complexes/Nanomaterial", "Color"), "\"green\"");
@@ -72,35 +86,32 @@ G4VPhysicalVolume* TsLysosome::Construct()
 	std::vector<G4VPhysicalVolume*> lysosome_children = ConstructSphericalChildren("Complexes", nChildren, rChildren, 0, fEnvelopePhys, true);
 	for (size_t i = 0; i < lysosome_children.size(); ++i)
 	{
-		if (std::ceil(nanomaterialDensities[i] * fNanomaterialMaxN) < 1) continue;
-
-		auto nanomaterial_radius = fNanomaterialRadiusPerComplexRadius * rChildren;
-		auto nanomaterial_volume = 4. / 3. * CLHEP::pi * std::pow(nanomaterial_radius, 3);
-		auto nanomaterial_n = (G4int)std::ceil(nanomaterialDensities[i] * fNanomaterialMaxN);
-		auto child_volume = 4. / 3. * CLHEP::pi * std::pow(rChildren, 3);
-
-		G4cerr << "n = " << nanomaterial_n << " / V = " << nanomaterial_n * nanomaterial_volume / um3 << " um3 / VComplex = " << child_volume / um3 << " um3 = " << nanomaterial_n * nanomaterial_volume / child_volume * 1000 << " mM" << G4endl;
-
-		ConstructSphericalChildren("Complexes/Nanomaterial", nanomaterial_n, nanomaterial_radius, 0, lysosome_children[i], true);
+		if (fNanomaterialNumbers[i] < 1) continue;
+		ConstructSphericalChildren("Complexes/Nanomaterial", fNanomaterialNumbers[i], fNanomaterialRadius, 0, lysosome_children[i], true);
 	}
 
 	if (fVerbosity > 0)
 	{
 		G4cout << "Nanomaterial volumes in component '" << fName << "' (V = " << GetCubicVolume() / um3 << " um3):" << G4endl;
+		G4int totalNanomaterialNumber = 0;
 		G4double totalNanomaterialVolume = 0;
 		for (size_t i = 0; i < lysosome_children.size(); ++i)
 		{
-			auto nanomaterial_radius = fNanomaterialRadiusPerComplexRadius * rChildren;
-			auto nanomaterial_volume = 4. / 3. * CLHEP::pi * std::pow(nanomaterial_radius, 3);
-			auto nanomaterial_n = (G4int)std::ceil(nanomaterialDensities[i] * fNanomaterialMaxN);
+			auto nanomaterial_volume = 4. / 3. * CLHEP::pi * std::pow(fNanomaterialRadius, 3);
+			auto child_volume = lysosome_children[i]->GetLogicalVolume()->GetSolid()->GetCubicVolume();
+			auto child_molarity = (fNanomaterialNumbers[i] / Avogadro) / child_volume;
 
-			G4cout << "> " << lysosome_children[i]->GetName() << " (V=" << lysosome_children[i]->GetLogicalVolume()->GetSolid()->GetCubicVolume() / um3 << " um3, n="
-				   << nanomaterial_n << "): " << nanomaterial_volume * nanomaterial_n / um3 << " um3"
+			totalNanomaterialNumber += fNanomaterialNumbers[i];
+			totalNanomaterialVolume += nanomaterial_volume * fNanomaterialNumbers[i];
+
+			G4cout << "> " << lysosome_children[i]->GetName() << " (V=" << child_volume / um3 << " um3, n="
+				   << fNanomaterialNumbers[i] << ", c=" << child_molarity / micromolar << " uM): "
+				   << nanomaterial_volume * fNanomaterialNumbers[i] / um3 << " um3"
 				   << G4endl;
-
-			totalNanomaterialVolume += nanomaterial_volume * nanomaterial_n;
 		}
-		G4cout << "Total nanomaterial volume: " << totalNanomaterialVolume / um3 << " um3" << G4endl;
+		G4cout << "Total nanomaterial volume:   " << totalNanomaterialVolume / um3 << " um3" << G4endl;
+		G4cout << "Total nanomaterial molarity: " << (totalNanomaterialNumber / Avogadro) / GetCubicVolume() / micromolar << " uM"
+			   << G4endl;
 	}
 
 	//
