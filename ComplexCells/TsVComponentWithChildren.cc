@@ -127,7 +127,7 @@ std::vector<G4VPhysicalVolume*> TsVComponentWithChildren::RandomlyPlaceSolid(G4V
 
 			physical = CreatePhysicalVolume(name, j, false, logical, rot, pos, parent);
 
-			overlapCheck = physical->CheckOverlaps();
+			overlapCheck = physical->CheckOverlaps(1000, 0, false);
 			if (overlapCheck)
 			{
 				parent->GetLogicalVolume()->RemoveDaughter(physical);

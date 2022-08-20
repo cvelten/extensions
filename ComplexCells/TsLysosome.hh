@@ -20,6 +20,9 @@ public:
 
 private:
 	G4double fSemiAxisA, fSemiAxisB, fSemiAxisC;
+
+	const G4int fNanomaterialMaxN = 500;
+	const G4double fNanomaterialRadiusPerComplexRadius = 0.075;
 };
 
 #endif
