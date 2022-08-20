@@ -81,7 +81,7 @@ G4VPhysicalVolume* TsLysosome::Construct()
 
 		G4cerr << "n = " << nanomaterial_n << " / V = " << nanomaterial_n * nanomaterial_volume / um3 << " um3 / VComplex = " << child_volume / um3 << " um3 = " << nanomaterial_n * nanomaterial_volume / child_volume * 1000 << " mM" << G4endl;
 
-		ConstructSphericalChildren("Complexes/Nanomaterial", nanomaterial_n, nanomaterial_radius, 0, lysosome_children[i]);
+		ConstructSphericalChildren("Complexes/Nanomaterial", nanomaterial_n, nanomaterial_radius, 0, lysosome_children[i], true);
 	}
 
 	if (fVerbosity > 0)
