@@ -105,8 +105,20 @@ std::vector<G4VPhysicalVolume*> TsVComponentWithChildren::RandomlyPlaceSolid(G4V
 	{
 		G4VPhysicalVolume* physical = nullptr;
 		auto overlapCheck = true;
+		auto nattempts = 0;
 		while (overlapCheck)
 		{
+			++nattempts;
+
+			if (nattempts > fMaxNumAttempts)
+			{
+				G4cerr << "Topas is exiting due to a serious error in geometry." << G4endl;
+				G4cerr << "Component " << GetName() << " has unsuccessfully tried "
+					   << nattempts << " times to instantiate '" << name
+					   << G4endl;
+				fPm->AbortSession(1);
+			}
+
 			G4double u = G4UniformRand() * 2 * pi;
 			G4double v = std::acos(2 * G4UniformRand() - 1);
 			G4double dr = G4UniformRand() * (radius - radialOffset);

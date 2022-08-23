@@ -21,6 +21,9 @@ protected:
 	std::vector<G4VPhysicalVolume*> ConstructSphericalChildren(G4String name, G4int n, G4double radius, G4double radialOffset, G4VPhysicalVolume* parent = nullptr, G4bool independentLogicals = false);
 	std::vector<G4VPhysicalVolume*> ConstructEllipsoidalChildren(G4String name, G4double radialOffset = 0);
 	std::vector<G4VPhysicalVolume*> ConstructEllipsoidalChildren(G4String name, G4int n, G4double semiAxisA, G4double semiAxisB, G4double semiAxisC, G4double radialOffset, G4VPhysicalVolume* parent = nullptr, G4bool independentLogicals = false);
+
+protected:
+	const G4int fMaxNumAttempts = 10000;
 };
 
 #endif
