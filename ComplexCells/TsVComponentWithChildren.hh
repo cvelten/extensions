@@ -14,8 +14,11 @@ public:
 
 	virtual G4VPhysicalVolume* Construct() = 0;
 
+public:
+	G4ThreeVector GetPointWithinVolume(G4VSolid* solid, G4double minDistanceFromSurface = 0) const;
+
 protected:
-	std::vector<G4VPhysicalVolume*> RandomlyPlaceSolid(G4VSolid* solid, G4int n, G4double radialOffset, G4VPhysicalVolume* parent = nullptr, G4bool independentLogicals = false, G4String name = "");
+	std::vector<G4VPhysicalVolume*> RandomlyPlaceSolid(G4VSolid* solid, G4int n = 1, G4double radialOffset = 0, G4VPhysicalVolume* parent = nullptr, G4bool independentLogicals = false, G4String name = "");
 
 	std::vector<G4VPhysicalVolume*> ConstructSphericalChildren(G4String name, G4double radialOffset = 0);
 	std::vector<G4VPhysicalVolume*> ConstructSphericalChildren(G4String name, G4int n, G4double radius, G4double radialOffset, G4VPhysicalVolume* parent = nullptr, G4bool independentLogicals = false);

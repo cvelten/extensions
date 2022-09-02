@@ -155,3 +155,16 @@ std::vector<G4VPhysicalVolume*> TsVComponentWithChildren::RandomlyPlaceSolid(G4V
 
 	return children;
 }
+
+G4ThreeVector TsVComponentWithChildren::GetPointWithinVolume(G4VSolid* solid, G4double minDistanceFromSurface) const
+{
+	G4ThreeVector surfacePoint = solid->GetPointOnSurface();
+	G4ThreeVector surfaceNormal = solid->SurfaceNormal(surfacePoint);
+	G4double internalChordLength = solid->DistanceToOut(surfacePoint, -surfaceNormal);
+
+	surfacePoint += minDistanceFromSurface * (-surfaceNormal);
+
+	G4double stepLength = G4UniformRand() * (internalChordLength - 2 * (minDistanceFromSurface));
+
+	return surfacePoint + stepLength * (-surfaceNormal);
+}

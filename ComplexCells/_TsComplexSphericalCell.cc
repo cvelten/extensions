@@ -1,6 +1,6 @@
-// Component for TsComplexSphericalCell
+// Component for __TsComplexSphericalCell
 
-#include "TsComplexSphericalCell.hh"
+#include "_TsComplexSphericalCell.hh"
 
 #include "TsParameterManager.hh"
 
@@ -12,12 +12,12 @@
 #include "G4VPhysicalVolume.hh"
 // #include "Randomize.hh"
 
-TsComplexSphericalCell::TsComplexSphericalCell(TsParameterManager* pM, TsExtensionManager* eM, TsMaterialManager* mM, TsGeometryManager* gM, TsVGeometryComponent* parentComponent, G4VPhysicalVolume* parentVolume, G4String& name)
+_TsComplexSphericalCell::_TsComplexSphericalCell(TsParameterManager* pM, TsExtensionManager* eM, TsMaterialManager* mM, TsGeometryManager* gM, TsVGeometryComponent* parentComponent, G4VPhysicalVolume* parentVolume, G4String& name)
 	: TsVComponentWithChildren(pM, eM, mM, gM, parentComponent, parentVolume, name),
 	  fCellRadius(), fNucleusRadius()
 {}
 
-G4VPhysicalVolume* TsComplexSphericalCell::Construct()
+G4VPhysicalVolume* _TsComplexSphericalCell::Construct()
 {
 	BeginConstruction();
 
@@ -52,7 +52,7 @@ G4VPhysicalVolume* TsComplexSphericalCell::Construct()
 	return fEnvelopePhys;
 }
 
-void TsComplexSphericalCell::ConstructMitochondria()
+void _TsComplexSphericalCell::ConstructMitochondria()
 {
 	if (!fPm->ParameterExists(GetFullParmName("Mitochondria", "N")))
 		return;
@@ -67,7 +67,7 @@ void TsComplexSphericalCell::ConstructMitochondria()
 	std::vector<G4VPhysicalVolume*> mitochondria = ConstructEllipsoidalChildren("Mitochondria", n, semiAxisA, semiAxisB, semiAxisC, fNucleusRadius);
 }
 
-void TsComplexSphericalCell::ConstructLysosomes()
+void _TsComplexSphericalCell::ConstructLysosomes()
 {
 	if (!fPm->ParameterExists(GetFullParmName("Lysosomes", "N")))
 		return;
@@ -132,7 +132,7 @@ void TsComplexSphericalCell::ConstructLysosomes()
 	}
 }
 
-void TsComplexSphericalCell::ConstructNucleus()
+void _TsComplexSphericalCell::ConstructNucleus()
 {
 	if (!fPm->ParameterExists(GetFullParmName("Nucleus/Radius")))
 		return;
