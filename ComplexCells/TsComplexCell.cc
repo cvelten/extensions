@@ -18,7 +18,7 @@
 
 TsComplexCell::TsComplexCell(TsParameterManager* pM, TsExtensionManager* eM, TsMaterialManager* mM, TsGeometryManager* gM, TsVGeometryComponent* parentComponent, G4VPhysicalVolume* parentVolume, G4String& name)
 	: TsVComponentWithChildren(pM, eM, mM, gM, parentComponent, parentVolume, name),
-	  fLysosomesN(0), fMitochondriaN(0)
+	  fUseParameterSystem(true), fLysosomesN(0), fMitochondriaN(0)
 {
 	fIsDividable = false;
 	// fCanCalculateSurfaceArea = false;
@@ -27,6 +27,9 @@ TsComplexCell::TsComplexCell(TsParameterManager* pM, TsExtensionManager* eM, TsM
 G4VPhysicalVolume* TsComplexCell::Construct()
 {
 	BeginConstruction();
+
+	if (fPm->ParameterExists(GetFullParmName("UseParameterSystem")))
+		fUseParameterSystem = fPm->GetBooleanParameter(GetFullParmName("UseParameterSystem"));
 
 	// Cell
 	fRadius = fPm->GetDoubleParameter(GetFullParmName("Radius"), "Length");
@@ -43,6 +46,17 @@ G4VPhysicalVolume* TsComplexCell::Construct()
 
 	// Mitochondria
 	ConstructMitochondria();
+
+	// Remove if using parameter system
+	if (fUseParameterSystem)
+	{
+		for (auto it = fLysosomePhysicals.begin(); it != fLysosomePhysicals.end(); ++it)
+			fEnvelopePhys->GetLogicalVolume()->RemoveDaughter(*it);
+		fLysosomePhysicals.clear();
+		for (auto it = fMitochondriaPhysicals.begin(); it != fMitochondriaPhysicals.end(); ++it)
+			fEnvelopePhys->GetLogicalVolume()->RemoveDaughter(*it);
+		fMitochondriaPhysicals.clear();
+	}
 
 	//
 	// Additional children
@@ -108,6 +122,13 @@ void TsComplexCell::ConstructNucleus()
 		G4cerr << "Nucleus overlaps with the cell." << G4endl;
 		fPm->AbortSession(1);
 	}
+}
+
+G4String TsComplexCell::ConstructParameterName(const char* component, const char* parmName)
+{
+	// G4String s_component = G4String(component
+	G4String fullName = "Ge/" + G4String(component) + "/" + G4String(parmName);
+	return fullName;
 }
 
 void TsComplexCell::ConstructLysosomes()
@@ -182,16 +203,45 @@ void TsComplexCell::ConstructLysosomes()
 	}
 
 	G4Ellipsoid* solid = new G4Ellipsoid("Lysosome", semiAxisA, semiAxisB, semiAxisC);
-	std::vector<G4VPhysicalVolume*> lysosomes = RandomlyPlaceSolid(solid, fLysosomesN, 0, fEnvelopePhys, true);
-	for (auto it_lyso = lysosomes.begin(); it_lyso != lysosomes.end(); ++it_lyso)
+	fLysosomePhysicals = RandomlyPlaceSolid(solid, fLysosomesN, 0, fEnvelopePhys, true);
+
+	if (fUseParameterSystem)
 	{
-		std::vector<G4VPhysicalVolume*> lysosome_children = ConstructSphericalChildren("Lysosome/Complexes", nComplexes, rComplexes, 0, *it_lyso, true);
-		for (size_t j = 0; j < lysosome_children.size(); ++j)
+		for (auto it = fLysosomePhysicals.begin(); it != fLysosomePhysicals.end(); ++it)
 		{
-			if (nanomaterialNumbers[j] < 1) continue;
-			ConstructSphericalChildren("Lysosome/Complexes/Nanomaterial", nanomaterialNumbers[j], nanomaterialRadius, 0, lysosome_children[j], true);
+			fPm->AddParameter("s:" + ConstructParameterName((*it)->GetName(), "Type"), "\"TsLysosome\"");
+			fPm->AddParameter("s:" + ConstructParameterName((*it)->GetName(), "Parent"), "\"" + GetName() + "\"");
+			fPm->CloneParameter(GetFullParmName("Lysosome/Material"), ConstructParameterName((*it)->GetName(), "Material"));
+			fPm->CloneParameter(GetFullParmName("Lysosome/SemiAxisA"), ConstructParameterName((*it)->GetName(), "SemiAxisA"));
+			fPm->CloneParameter(GetFullParmName("Lysosome/SemiAxisB"), ConstructParameterName((*it)->GetName(), "SemiAxisB"));
+			fPm->CloneParameter(GetFullParmName("Lysosome/SemiAxisC"), ConstructParameterName((*it)->GetName(), "SemiAxisC"));
+			fPm->CloneParameter(GetFullParmName("Lysosome/Color"), ConstructParameterName((*it)->GetName(), "Color"));
+			fPm->CloneParameter(GetFullParmName("Lysosome/Complexes/N"), ConstructParameterName((*it)->GetName(), "Complexes/N"));
+			fPm->CloneParameter(GetFullParmName("Lysosome/Complexes/Radius"), ConstructParameterName((*it)->GetName(), "Complexes/Radius"));
+			fPm->CloneParameter(GetFullParmName("Lysosome/Complexes/Material"), ConstructParameterName((*it)->GetName(), "Complexes/Material"));
+			fPm->CloneParameter(GetFullParmName("Lysosome/Complexes/Nanomaterial/Number"), ConstructParameterName((*it)->GetName(), "Complexes/Nanomaterial/Number"));
+			fPm->CloneParameter(GetFullParmName("Lysosome/Complexes/Nanomaterial/Radius"), ConstructParameterName((*it)->GetName(), "Complexes/Nanomaterial/Radius"));
+			fPm->CloneParameter(GetFullParmName("Lysosome/Complexes/Nanomaterial/Material"), ConstructParameterName((*it)->GetName(), "Complexes/Nanomaterial/Material"));
+			fPm->CloneParameter(GetFullParmName("Lysosome/Complexes/Nanomaterial/Invisible"), ConstructParameterName((*it)->GetName(), "Complexes/Nanomaterial/Invisible"));
+
+			auto trans = (*it)->GetTranslation();
+			fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "TransX"), std::to_string(trans.x() / um) + " um");
+			fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "TransY"), std::to_string(trans.y() / um) + " um");
+			fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "TransZ"), std::to_string(trans.z() / um) + " um");
 		}
 	}
+
+	// for (auto it_lyso = lysosomes.begin(); it_lyso != lysosomes.end(); ++it_lyso)
+	// {
+	// 	G4cerr << (*it_lyso)->GetName() << ": " << (*it_lyso)->GetTranslation() << G4endl;
+
+	// 	std::vector<G4VPhysicalVolume*> lysosome_children = ConstructSphericalChildren("Lysosome/Complexes", nComplexes, rComplexes, 0, *it_lyso, true);
+	// 	for (size_t j = 0; j < lysosome_children.size(); ++j)
+	// 	{
+	// 		if (nanomaterialNumbers[j] < 1) continue;
+	// 		ConstructSphericalChildren("Lysosome/Complexes/Nanomaterial", nanomaterialNumbers[j], nanomaterialRadius, 0, lysosome_children[j], true);
+	// 	}
+	// }
 }
 
 void TsComplexCell::ConstructMitochondria()
@@ -212,8 +262,45 @@ void TsComplexCell::ConstructMitochondria()
 	G4double semiAxisA = 0.4 * micrometer;
 	G4double semiAxisB = 0.15 * micrometer;
 	G4double semiAxisC = 0.15 * micrometer;
+	{
+		if (fPm->ParameterExists(GetFullParmName("Mitochondria/SemiAxisA")))
+			semiAxisA = fPm->GetDoubleParameter(GetFullParmName("Mitochondria/SemiAxisA"), "Length");
+		else
+			fPm->AddParameter("d:" + GetFullParmName("Mitochondria/SemiAxisA"), std::to_string(semiAxisA / um) + " um");
+		if (fPm->ParameterExists(GetFullParmName("Mitochondria/SemiAxisB")))
+			semiAxisB = fPm->GetDoubleParameter(GetFullParmName("Mitochondria/SemiAxisB"), "Length");
+		else
+			fPm->AddParameter("d:" + GetFullParmName("Mitochondria/SemiAxisB"), std::to_string(semiAxisB / um) + " um");
+		if (fPm->ParameterExists(GetFullParmName("Mitochondria/SemiAxisC")))
+			semiAxisC = fPm->GetDoubleParameter(GetFullParmName("Mitochondria/SemiAxisC"), "Length");
+		else
+			fPm->AddParameter("d:" + GetFullParmName("Mitochondria/SemiAxisC"), std::to_string(semiAxisC / um) + " um");
+	}
 
-	std::vector<G4VPhysicalVolume*> mitochondria = ConstructEllipsoidalChildren("Mitochondria", fMitochondriaN, semiAxisA, semiAxisB, semiAxisC, fNucleusRadius);
+	fMitochondriaPhysicals = ConstructEllipsoidalChildren("Mitochondria", fMitochondriaN, semiAxisA, semiAxisB, semiAxisC, fNucleusRadius);
+
+	if (fUseParameterSystem)
+	{
+		for (auto it = fMitochondriaPhysicals.begin(); it != fMitochondriaPhysicals.end(); ++it)
+		{
+			fPm->AddParameter("s:" + ConstructParameterName((*it)->GetName(), "Type"), "\"G4Ellipsoid\"");
+			fPm->AddParameter("s:" + ConstructParameterName((*it)->GetName(), "Parent"), "\"" + GetName() + "\"");
+			fPm->CloneParameter(GetFullParmName("Mitochondria/Material"), ConstructParameterName((*it)->GetName(), "Material"));
+			fPm->CloneParameter(GetFullParmName("Mitochondria/SemiAxisA"), ConstructParameterName((*it)->GetName(), "HLX"));
+			fPm->CloneParameter(GetFullParmName("Mitochondria/SemiAxisB"), ConstructParameterName((*it)->GetName(), "HLY"));
+			fPm->CloneParameter(GetFullParmName("Mitochondria/SemiAxisC"), ConstructParameterName((*it)->GetName(), "HLZ"));
+			fPm->CloneParameter(GetFullParmName("Mitochondria/Color"), ConstructParameterName((*it)->GetName(), "Color"));
+
+			auto trans = (*it)->GetTranslation();
+			auto rot = (*it)->GetRotation();
+			fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "TransX"), std::to_string(trans.x() / um) + " um");
+			fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "TransY"), std::to_string(trans.y() / um) + " um");
+			fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "TransZ"), std::to_string(trans.z() / um) + " um");
+			fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "RotX"), std::to_string(rot->psi() / radian) + " radian");
+			fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "RotY"), std::to_string(rot->theta() / radian) + " radian");
+			fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "RotZ"), std::to_string(rot->phi() / radian) + " radian");
+		}
+	}
 }
 
 TsVGeometryComponent::SurfaceType TsComplexCell::GetSurfaceID(G4String surfaceName)
