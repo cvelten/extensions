@@ -17,8 +17,6 @@ public:
 	void ConstructLysosomes();
 	void ConstructMitochondria();
 
-	static G4String ConstructParameterName(const char* component, const char* parmName);
-
 	SurfaceType GetSurfaceID(G4String surfaceName) override;
 	G4bool IsOnBoundary(G4ThreeVector localpos, G4VSolid* solid, SurfaceType surfaceID) override;
 	// G4double GetAreaOfSelectedSurface(G4VSolid* solid, SurfaceType surfaceID, G4int i, G4int j, G4int k) override;

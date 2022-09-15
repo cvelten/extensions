@@ -17,6 +17,9 @@ public:
 public:
 	G4ThreeVector GetPointWithinVolume(G4VSolid* solid, G4double minDistanceFromSurface = 0) const;
 
+	static G4String ConstructParameterName(const char* component, const char* parmName);
+	static std::string StringReplace(std::string str, const std::string& from, const std::string& to);
+
 protected:
 	std::vector<G4VPhysicalVolume*> RandomlyPlaceSolid(G4VSolid* solid, G4int n = 1, G4double radialOffset = 0, G4VPhysicalVolume* parent = nullptr, G4bool independentLogicals = false, G4String name = "");
 

@@ -124,13 +124,6 @@ void TsComplexCell::ConstructNucleus()
 	}
 }
 
-G4String TsComplexCell::ConstructParameterName(const char* component, const char* parmName)
-{
-	// G4String s_component = G4String(component
-	G4String fullName = "Ge/" + G4String(component) + "/" + G4String(parmName);
-	return fullName;
-}
-
 void TsComplexCell::ConstructLysosomes()
 {
 	if (fPm->ParameterExists(GetFullParmName("Lysosome", "N")))
@@ -225,23 +218,54 @@ void TsComplexCell::ConstructLysosomes()
 			fPm->CloneParameter(GetFullParmName("Lysosome/Complexes/Nanomaterial/Invisible"), ConstructParameterName((*it)->GetName(), "Complexes/Nanomaterial/Invisible"));
 
 			auto trans = (*it)->GetTranslation();
+			auto rot = (*it)->GetRotation();
+			auto psi = std::acos(rot->yy());
+			auto phi = std::acos(rot->xx());
 			fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "TransX"), std::to_string(trans.x() / um) + " um");
 			fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "TransY"), std::to_string(trans.y() / um) + " um");
 			fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "TransZ"), std::to_string(trans.z() / um) + " um");
+			fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "RotX"), std::to_string(psi / radian) + " radian");
+			fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "RotY"), std::to_string(phi / radian) + " radian");
+		}
+
+		if (fPm->ParameterExists(GetFullParmName("Lysosome/DuplicateScorerForVolumes")))
+		{
+			auto scorerName = fPm->GetStringParameter(GetFullParmName("Lysosome/DuplicateScorerForVolumes"));
+			std::vector<G4String> parameterNames;
+			fPm->GetParameterNamesStartingWith("Sc/" + scorerName + "/", &parameterNames);
+			for (auto it = fLysosomePhysicals.begin(); it != fLysosomePhysicals.end(); ++it)
+			{
+				for (std::string parName : parameterNames)
+				{
+					G4String nameWithoutSlash = StringReplace((*it)->GetName(), "/", "_");
+					G4String newParName = StringReplace(parName, scorerName, scorerName + "_" + nameWithoutSlash);
+
+					if (newParName.find("/OutputFile") != std::string::npos)
+					{
+						G4String outputFile = fPm->GetStringParameter(parName) + "_" + nameWithoutSlash;
+						fPm->AddParameter("s:Sc/" + scorerName + "_" + nameWithoutSlash + "/OutputFile", '"' + outputFile + '"');
+						continue;
+					}
+
+					fPm->CloneParameter(parName, newParName);
+				}
+			}
 		}
 	}
+	else
+	{
+		for (auto it = fLysosomePhysicals.begin(); it != fLysosomePhysicals.end(); ++it)
+		{
+			G4cerr << (*it)->GetName() << ": " << (*it)->GetTranslation() << G4endl;
 
-	// for (auto it_lyso = lysosomes.begin(); it_lyso != lysosomes.end(); ++it_lyso)
-	// {
-	// 	G4cerr << (*it_lyso)->GetName() << ": " << (*it_lyso)->GetTranslation() << G4endl;
-
-	// 	std::vector<G4VPhysicalVolume*> lysosome_children = ConstructSphericalChildren("Lysosome/Complexes", nComplexes, rComplexes, 0, *it_lyso, true);
-	// 	for (size_t j = 0; j < lysosome_children.size(); ++j)
-	// 	{
-	// 		if (nanomaterialNumbers[j] < 1) continue;
-	// 		ConstructSphericalChildren("Lysosome/Complexes/Nanomaterial", nanomaterialNumbers[j], nanomaterialRadius, 0, lysosome_children[j], true);
-	// 	}
-	// }
+			std::vector<G4VPhysicalVolume*> lysosome_children = ConstructSphericalChildren("Lysosome/Complexes", nComplexes, rComplexes, 0, *it, true);
+			for (size_t j = 0; j < lysosome_children.size(); ++j)
+			{
+				if (nanomaterialNumbers[j] < 1) continue;
+				ConstructSphericalChildren("Lysosome/Complexes/Nanomaterial", nanomaterialNumbers[j], nanomaterialRadius, 0, lysosome_children[j], true);
+			}
+		}
+	}
 }
 
 void TsComplexCell::ConstructMitochondria()
@@ -293,12 +317,13 @@ void TsComplexCell::ConstructMitochondria()
 
 			auto trans = (*it)->GetTranslation();
 			auto rot = (*it)->GetRotation();
+			auto psi = std::acos(rot->yy());
+			auto phi = std::acos(rot->xx());
 			fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "TransX"), std::to_string(trans.x() / um) + " um");
 			fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "TransY"), std::to_string(trans.y() / um) + " um");
 			fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "TransZ"), std::to_string(trans.z() / um) + " um");
-			fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "RotX"), std::to_string(rot->psi() / radian) + " radian");
-			fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "RotY"), std::to_string(rot->theta() / radian) + " radian");
-			fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "RotZ"), std::to_string(rot->phi() / radian) + " radian");
+			fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "RotX"), std::to_string(psi / radian) + " radian");
+			fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "RotY"), std::to_string(phi / radian) + " radian");
 		}
 	}
 }

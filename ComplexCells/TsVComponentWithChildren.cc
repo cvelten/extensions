@@ -122,8 +122,8 @@ std::vector<G4VPhysicalVolume*> TsVComponentWithChildren::RandomlyPlaceSolid(G4V
 			G4double u = G4UniformRand() * 2 * pi;
 			G4double v = std::acos(2 * G4UniformRand() - 1);
 			G4double dr = G4UniformRand() * (radius - radialOffset);
-			G4double phi = G4UniformRand() * 2 * pi;
-			G4double psi = G4UniformRand() * 2 * pi;
+			G4double phi = G4UniformRand() * pi;
+			G4double psi = G4UniformRand() * pi;
 			G4double x = 0.0;
 			G4double y = 0.0;
 			G4double z = 0.0;
@@ -167,4 +167,19 @@ G4ThreeVector TsVComponentWithChildren::GetPointWithinVolume(G4VSolid* solid, G4
 	G4double stepLength = G4UniformRand() * (internalChordLength - 2 * (minDistanceFromSurface));
 
 	return surfacePoint + stepLength * (-surfaceNormal);
+}
+
+G4String TsVComponentWithChildren::ConstructParameterName(const char* component, const char* parmName)
+{
+	// G4String s_component = G4String(component
+	G4String fullName = "Ge/" + G4String(component) + "/" + G4String(parmName);
+	return fullName;
+}
+
+std::string TsVComponentWithChildren::StringReplace(std::string str, const std::string& from, const std::string& to)
+{
+	size_t start_pos = str.find(from);
+	if (start_pos != std::string::npos)
+		str.replace(start_pos, from.length(), to);
+	return str;
 }
