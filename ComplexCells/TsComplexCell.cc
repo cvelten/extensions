@@ -18,7 +18,7 @@
 
 TsComplexCell::TsComplexCell(TsParameterManager* pM, TsExtensionManager* eM, TsMaterialManager* mM, TsGeometryManager* gM, TsVGeometryComponent* parentComponent, G4VPhysicalVolume* parentVolume, G4String& name)
 	: TsVComponentWithChildren(pM, eM, mM, gM, parentComponent, parentVolume, name),
-	  fUseParameterSystem(true), fLysosomesN(0), fMitochondriaN(0)
+	  fUseParameterSystem(false), fLysosomesN(0), fMitochondriaN(0)
 {
 	fIsDividable = false;
 	// fCanCalculateSurfaceArea = false;
