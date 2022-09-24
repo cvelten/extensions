@@ -246,9 +246,41 @@ void TsComplexCell::ConstructLysosomes()
 						fPm->AddParameter("s:Sc/" + scorerName + "_" + nameWithoutSlash + "/OutputFile", '"' + outputFile + '"');
 						continue;
 					}
+					else if (newParName.find("/Component") != std::string::npos)
+					{
+						G4String component = fPm->GetStringParameter(parName) + "_" + nameWithoutSlash;
+						fPm->AddParameter("s:Sc/" + scorerName + "_" + nameWithoutSlash + "/Component", '"' + (*it)->GetName() + '"');
+						continue;
+					}
 
 					fPm->CloneParameter(parName, newParName);
 				}
+			}
+		}
+		if (fPm->ParameterExists(GetFullParmName("Lysosome/DuplicateSourceForVolumes")))
+		{
+			auto sourceName = fPm->GetStringParameter(GetFullParmName("Lysosome/DuplicateSourceForVolumes"));
+			std::vector<G4String> parameterNames;
+			fPm->GetParameterNamesStartingWith("So/" + sourceName + "/", &parameterNames);
+			for (auto it = fLysosomePhysicals.begin(); it != fLysosomePhysicals.end(); ++it)
+			{
+				for (std::string parName : parameterNames)
+				{
+					G4String nameWithoutSlash = StringReplace((*it)->GetName(), "/", "_");
+					G4String newParName = StringReplace(parName, sourceName, sourceName + "_" + nameWithoutSlash);
+
+					if (newParName.find("/Component") != std::string::npos)
+					{
+						G4String component = fPm->GetStringParameter(parName) + "_" + nameWithoutSlash;
+						fPm->AddParameter("s:So/" + sourceName + "_" + nameWithoutSlash + "/Component", '"' + (*it)->GetName() + '"');
+						continue;
+					}
+
+					fPm->CloneParameter(parName, newParName);
+				}
+				// if (fVerbose > 0) {
+				G4cout << (*it)->GetName() << " cloned source parameters for source '" << sourceName << "'." << G4endl;
+				// }
 			}
 		}
 	}
