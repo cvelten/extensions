@@ -26,6 +26,8 @@ TsLysosome::TsLysosome(TsParameterManager* pM, TsExtensionManager* eM, TsMateria
 
 G4VPhysicalVolume* TsLysosome::Construct()
 {
+	G4cerr << "TsLysosome::Construct()" << G4endl;
+
 	BeginConstruction();
 
 	//

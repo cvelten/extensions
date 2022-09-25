@@ -26,6 +26,8 @@ TsComplexCell::TsComplexCell(TsParameterManager* pM, TsExtensionManager* eM, TsM
 
 G4VPhysicalVolume* TsComplexCell::Construct()
 {
+	G4cerr << "TsComplexCell::Construct()" << G4endl;
+
 	BeginConstruction();
 
 	if (fPm->ParameterExists(GetFullParmName("UseParameterSystem")))
