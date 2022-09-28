@@ -161,7 +161,7 @@ G4bool TsScoreMoleculeTupleExtended::ProcessHits(G4Step* aStep, G4TouchableHisto
 	if (fIncludeChemistry && aTrack->GetTrackID() < 0) {
 		fGlobalTime = aStep->GetPreStepPoint()->GetGlobalTime();
 
-		if (fTimeToRecord.size() > 0 && fTime >= fTimeToRecord.back()) {
+		if (fTimeToRecord.size() > 0 && fGlobalTime >= fTimeToRecord.back()) {
 			fTime = fTimeToRecord.back();
 			fTimeToRecord.pop_back();
 
@@ -196,7 +196,9 @@ G4bool TsScoreMoleculeTupleExtended::ProcessHits(G4Step* aStep, G4TouchableHisto
 
 			fNtuple->Fill();
 
-			aStep->GetTrack()->SetTrackStatus(fStopAndKill);
+			if (fTime > fTimeCut)
+				aStep->GetTrack()->SetTrackStatus(fStopAndKill);
+
 			return true;
 		}
 	}
