@@ -57,7 +57,7 @@ TsScoreMoleculeTupleExtended::TsScoreMoleculeTupleExtended(TsParameterManager* p
 		}
 
 		std::sort(fTimeToRecord.begin(), fTimeToRecord.end());
-		std::reverse(fTimeToRecord.begin(), fTimeToRecord.end());
+		// std::reverse(fTimeToRecord.begin(), fTimeToRecord.end());
 	}
 	else {
 		fTimeToRecord.push_back(fTimeCut);
@@ -161,9 +161,11 @@ G4bool TsScoreMoleculeTupleExtended::ProcessHits(G4Step* aStep, G4TouchableHisto
 	if (fIncludeChemistry && aTrack->GetTrackID() < 0) {
 		fGlobalTime = aStep->GetPreStepPoint()->GetGlobalTime();
 
-		if (fTimeToRecord.size() > 0 && fGlobalTime >= fTimeToRecord.back()) {
-			fTime = fTimeToRecord.back();
-			fTimeToRecord.pop_back();
+		if (fTimeToRecord.size() > 0 && fGlobalTime >= fTimeToRecord.front()) {
+			// fTime = fTimeToRecord.back();
+			// fTimeToRecord.pop_back();
+			auto time_iter = std::lower_bound(fTimeToRecord.rbegin(), fTimeToRecord.rend(), fGlobalTime, std::greater<G4double>());
+			fTime = (time_iter == fTimeToRecord.rend()) ? 0 : *time_iter;
 
 			G4TouchableHistory* touchable = (G4TouchableHistory*)(aStep->GetPreStepPoint()->GetTouchable());
 			fVolumeName = touchable->GetVolume()->GetName();
