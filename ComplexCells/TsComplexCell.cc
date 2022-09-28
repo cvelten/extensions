@@ -335,7 +335,10 @@ void TsComplexCell::ConstructMitochondria()
 			fPm->AddParameter("d:" + GetFullParmName("Mitochondria/SemiAxisC"), std::to_string(semiAxisC / um) + " um");
 	}
 
-	fMitochondriaPhysicals = ConstructEllipsoidalChildren("Mitochondria", fMitochondriaN, semiAxisA, semiAxisB, semiAxisC, fNucleusRadius, fEnvelopePhys, true);
+	G4Ellipsoid* solid = new G4Ellipsoid("Mitochondria", semiAxisA, semiAxisB, semiAxisC);
+	fMitochondriaPhysicals = RandomlyPlaceSolid(solid, fMitochondriaN, 0, fEnvelopePhys, true);
+
+	// fMitochondriaPhysicals = ConstructEllipsoidalChildren("Mitochondria", fMitochondriaN, semiAxisA, semiAxisB, semiAxisC, fNucleusRadius, fEnvelopePhys, true);
 
 	if (fUseParameterSystem)
 	{
