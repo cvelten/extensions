@@ -55,9 +55,9 @@ G4VPhysicalVolume* TsComplexCell::Construct()
 		for (auto it = fLysosomePhysicals.begin(); it != fLysosomePhysicals.end(); ++it)
 			fEnvelopePhys->GetLogicalVolume()->RemoveDaughter(*it);
 		fLysosomePhysicals.clear();
-		for (auto it = fMitochondriaPhysicals.begin(); it != fMitochondriaPhysicals.end(); ++it)
-			fEnvelopePhys->GetLogicalVolume()->RemoveDaughter(*it);
-		fMitochondriaPhysicals.clear();
+		// for (auto it = fMitochondriaPhysicals.begin(); it != fMitochondriaPhysicals.end(); ++it)
+		// 	fEnvelopePhys->GetLogicalVolume()->RemoveDaughter(*it);
+		// fMitochondriaPhysicals.clear();
 	}
 
 	//
@@ -337,29 +337,29 @@ void TsComplexCell::ConstructMitochondria()
 
 	fMitochondriaPhysicals = ConstructEllipsoidalChildren("Mitochondria", fMitochondriaN, semiAxisA, semiAxisB, semiAxisC, fNucleusRadius);
 
-	if (fUseParameterSystem)
-	{
-		for (auto it = fMitochondriaPhysicals.begin(); it != fMitochondriaPhysicals.end(); ++it)
-		{
-			fPm->AddParameter("s:" + ConstructParameterName((*it)->GetName(), "Type"), "\"G4Ellipsoid\"");
-			fPm->AddParameter("s:" + ConstructParameterName((*it)->GetName(), "Parent"), "\"" + GetName() + "\"");
-			fPm->CloneParameter(GetFullParmName("Mitochondria/Material"), ConstructParameterName((*it)->GetName(), "Material"));
-			fPm->CloneParameter(GetFullParmName("Mitochondria/SemiAxisA"), ConstructParameterName((*it)->GetName(), "HLX"));
-			fPm->CloneParameter(GetFullParmName("Mitochondria/SemiAxisB"), ConstructParameterName((*it)->GetName(), "HLY"));
-			fPm->CloneParameter(GetFullParmName("Mitochondria/SemiAxisC"), ConstructParameterName((*it)->GetName(), "HLZ"));
-			fPm->CloneParameter(GetFullParmName("Mitochondria/Color"), ConstructParameterName((*it)->GetName(), "Color"));
+	// if (fUseParameterSystem)
+	// {
+	// 	for (auto it = fMitochondriaPhysicals.begin(); it != fMitochondriaPhysicals.end(); ++it)
+	// 	{
+	// 		fPm->AddParameter("s:" + ConstructParameterName((*it)->GetName(), "Type"), "\"G4Ellipsoid\"");
+	// 		fPm->AddParameter("s:" + ConstructParameterName((*it)->GetName(), "Parent"), "\"" + GetName() + "\"");
+	// 		fPm->CloneParameter(GetFullParmName("Mitochondria/Material"), ConstructParameterName((*it)->GetName(), "Material"));
+	// 		fPm->CloneParameter(GetFullParmName("Mitochondria/SemiAxisA"), ConstructParameterName((*it)->GetName(), "HLX"));
+	// 		fPm->CloneParameter(GetFullParmName("Mitochondria/SemiAxisB"), ConstructParameterName((*it)->GetName(), "HLY"));
+	// 		fPm->CloneParameter(GetFullParmName("Mitochondria/SemiAxisC"), ConstructParameterName((*it)->GetName(), "HLZ"));
+	// 		fPm->CloneParameter(GetFullParmName("Mitochondria/Color"), ConstructParameterName((*it)->GetName(), "Color"));
 
-			auto trans = (*it)->GetTranslation();
-			auto rot = (*it)->GetRotation();
-			auto psi = std::acos(rot->yy());
-			auto phi = std::acos(rot->xx());
-			fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "TransX"), std::to_string(trans.x() / um) + " um");
-			fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "TransY"), std::to_string(trans.y() / um) + " um");
-			fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "TransZ"), std::to_string(trans.z() / um) + " um");
-			fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "RotX"), std::to_string(psi / radian) + " radian");
-			fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "RotY"), std::to_string(phi / radian) + " radian");
-		}
-	}
+	// 		auto trans = (*it)->GetTranslation();
+	// 		auto rot = (*it)->GetRotation();
+	// 		auto psi = std::acos(rot->yy());
+	// 		auto phi = std::acos(rot->xx());
+	// 		fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "TransX"), std::to_string(trans.x() / um) + " um");
+	// 		fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "TransY"), std::to_string(trans.y() / um) + " um");
+	// 		fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "TransZ"), std::to_string(trans.z() / um) + " um");
+	// 		fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "RotX"), std::to_string(psi / radian) + " radian");
+	// 		fPm->AddParameter("d:" + ConstructParameterName((*it)->GetName(), "RotY"), std::to_string(phi / radian) + " radian");
+	// 	}
+	// }
 }
 
 TsVGeometryComponent::SurfaceType TsComplexCell::GetSurfaceID(G4String surfaceName)
