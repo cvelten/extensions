@@ -133,9 +133,8 @@ void TsMoleculeTracker::UserHookForChemicalStep(const G4Step* aStep)
 		return;
 
 	auto globalTime = aStep->GetPreStepPoint()->GetGlobalTime();
-
 	auto itNextTime = fNextTimeForTrack.emplace(aTrack->GetTrackID(), fTimesToRecord.front()).first;
-	// G4cerr << globalTime / ps << "/" << itNextTime->second / ps << " ps" << G4endl;
+
 	if (globalTime >= itNextTime->second && itNextTime->second > 0)
 	{
 		if (GetFilter()->Accept(aStep))
@@ -149,7 +148,7 @@ void TsMoleculeTracker::UserHookForChemicalStep(const G4Step* aStep)
 			idx.VolumeCopyNumber = touchable->GetVolume()->GetCopyNo();
 			idx.Time = fNextTimeForTrack[aTrack->GetTrackID()];
 
-			G4cerr << "Tracked " << idx.ParticleName << " in " << idx.VolumeName << " at time " << idx.Time / ps << " ps" << G4endl;
+			// G4cerr << "Tracked " << idx.ParticleName << " in " << idx.VolumeName << " at time " << idx.Time / ps << " ps" << G4endl;
 
 			++fHitsMap[idx];
 		}
