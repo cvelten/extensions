@@ -18,7 +18,7 @@
 
 TsComplexCell::TsComplexCell(TsParameterManager* pM, TsExtensionManager* eM, TsMaterialManager* mM, TsGeometryManager* gM, TsVGeometryComponent* parentComponent, G4VPhysicalVolume* parentVolume, G4String& name)
 	: TsVComponentWithChildren(pM, eM, mM, gM, parentComponent, parentVolume, name),
-	  fUseParameterSystem(false), fLysosomesN(0), fMitochondriaN(0)
+	  fUseParameterSystem(false), fLysosomesN(0), fMitochondriaN(0), fNucleusRadius(0)
 {
 	fIsDividable = false;
 	// fCanCalculateSurfaceArea = false;
@@ -79,7 +79,7 @@ void TsComplexCell::ConstructNucleus()
 	if (!fPm->ParameterExists(GetFullParmName("Nucleus/Radius")))
 		return;
 
-	auto fNucleusRadius = fPm->GetDoubleParameter(GetFullParmName("Nucleus/Radius"), "Length");
+	fNucleusRadius = fPm->GetDoubleParameter(GetFullParmName("Nucleus/Radius"), "Length");
 
 	if (!fPm->ParameterExists(GetFullParmName("Nucleus", "Material")))
 		fPm->CloneParameter(GetFullParmName("Material"), GetFullParmName("Nucleus", "Material"));
