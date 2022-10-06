@@ -134,7 +134,7 @@ void TsMoleculeTracker::UserHookForChemicalStep(const G4Step* aStep)
 		return;
 
 	auto globalTime = aStep->GetPreStepPoint()->GetGlobalTime();
-	if (globalTime >= fNextTimeForTrack[aTrack->GetTrackID()] && fNextTimeForTrack[aTrack->GetTrackID()] > 0)
+	if (globalTime >= fNextTimeForTrack[aTrack->GetTrackID()] && fNextTimeForTrack[aTrack->GetTrackID()] >= 0)
 	{
 		G4TouchableHistory* touchable = (G4TouchableHistory*)(aStep->GetPreStepPoint()->GetTouchable());
 
