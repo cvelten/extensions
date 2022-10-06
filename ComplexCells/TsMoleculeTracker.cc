@@ -125,31 +125,38 @@ void TsMoleculeTracker::Clear()
 
 void TsMoleculeTracker::UserHookForChemicalStep(const G4Step* aStep)
 {
-	if (!GetFilter()->Accept(aStep))
-		return;
-
 	auto aTrack = aStep->GetTrack();
 
+	// if (!GetFilter()->Accept(aStep))
+	// 	return;
 	if (aTrack->GetTrackID() > -1) // this is a physical track
 		return;
 
 	auto globalTime = aStep->GetPreStepPoint()->GetGlobalTime();
-	if (globalTime >= fNextTimeForTrack[aTrack->GetTrackID()] && fNextTimeForTrack[aTrack->GetTrackID()] >= 0)
+
+	auto itNextTime = fNextTimeForTrack.emplace(aTrack->GetTrackID(), fTimesToRecord.front()).first;
+	// G4cerr << globalTime / ps << "/" << itNextTime->second / ps << " ps" << G4endl;
+	if (globalTime >= itNextTime->second && itNextTime->second > 0)
 	{
-		G4TouchableHistory* touchable = (G4TouchableHistory*)(aStep->GetPreStepPoint()->GetTouchable());
+		if (GetFilter()->Accept(aStep))
+		{
+			G4TouchableHistory* touchable = (G4TouchableHistory*)(aStep->GetPreStepPoint()->GetTouchable());
 
-		TsMoleculeTrackerIndex idx;
-		idx.IsMolecule = true;
-		idx.ParticleName = GetMolecule(aTrack)->GetName();
-		idx.VolumeName = touchable->GetVolume()->GetName();
-		idx.VolumeCopyNumber = touchable->GetVolume()->GetCopyNo();
-		idx.Time = fNextTimeForTrack[aTrack->GetTrackID()];
+			TsMoleculeTrackerIndex idx;
+			idx.IsMolecule = true;
+			idx.ParticleName = GetMolecule(aTrack)->GetName();
+			idx.VolumeName = touchable->GetVolume()->GetName();
+			idx.VolumeCopyNumber = touchable->GetVolume()->GetCopyNo();
+			idx.Time = fNextTimeForTrack[aTrack->GetTrackID()];
 
-		++fHitsMap[idx];
+			G4cerr << "Tracked " << idx.ParticleName << " in " << idx.VolumeName << " at time " << idx.Time / ps << " ps" << G4endl;
+
+			++fHitsMap[idx];
+		}
 
 		auto itNextTime = std::upper_bound(fTimesToRecord.begin(), fTimesToRecord.end(), globalTime);
 		if (itNextTime == fTimesToRecord.end())
-			fNextTimeForTrack[aTrack->GetTrackID()] = -1; // do not track anymore
+			fNextTimeForTrack[aTrack->GetTrackID()] = 0; // do not track anymore
 		else
 			fNextTimeForTrack[aTrack->GetTrackID()] = *itNextTime;
 	}

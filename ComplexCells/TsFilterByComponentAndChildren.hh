@@ -9,7 +9,7 @@ class TsFilterByComponentAndChildren : public TsVFilter
 {
 public:
 	TsFilterByComponentAndChildren(G4String name, TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM,
-								   TsFilterManager* fM, TsVGenerator* generator, TsVScorer* scorer, TsVFilter* parentFilter, G4bool invert = false);
+								   TsFilterManager* fM, TsVGenerator* generator, TsVScorer* scorer, TsVFilter* parentFilter);
 	virtual ~TsFilterByComponentAndChildren() = default;
 
 	G4bool Accept(const G4Step*) const override;

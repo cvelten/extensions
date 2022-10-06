@@ -1,4 +1,4 @@
-// Filter for OnlyIncludeIfWithinComponentOrItsChildren,OnlyIncludeIfNotWithinComponentOrItsChildren
+// Filter for OnlyIncludeIfWithinComponentOrItsChildren
 
 #include "TsFilterByComponentAndChildren.hh"
 
@@ -8,8 +8,8 @@
 #include "G4VTouchable.hh"
 
 TsFilterByComponentAndChildren::TsFilterByComponentAndChildren(G4String name, TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM,
-															   TsFilterManager* fM, TsVGenerator* generator, TsVScorer* scorer, TsVFilter* parentFilter, G4bool invert)
-	: TsVFilter(name, pM, mM, gM, fM, generator, scorer, parentFilter, invert),
+															   TsFilterManager* fM, TsVGenerator* generator, TsVScorer* scorer, TsVFilter* parentFilter)
+	: TsVFilter(name, pM, mM, gM, fM, generator, scorer, parentFilter),
 	  fNamesAreVolumes(false)
 {
 	ResolveParameters();
@@ -19,9 +19,6 @@ TsFilterByComponentAndChildren::TsFilterByComponentAndChildren(G4String name, Ts
 
 void TsFilterByComponentAndChildren::ResolveParameters()
 {
-	if (GetName().find("not"))
-		fInvert = true;
-
 	G4String parName = GetName() + "/NamesAreVolumes";
 	if (fPm->ParameterExists(GetFullParmName(parName)))
 		fNamesAreVolumes = fPm->GetBooleanParameter(GetFullParmName(parName));
@@ -82,9 +79,9 @@ G4bool TsFilterByComponentAndChildren::Accept(const G4Step* aStep) const
 		if (pv == nullptr)
 			continue;
 		if (std::binary_search(fVolumes.begin(), fVolumes.end(), pv))
-			return fInvert ? false : true;
+			return true;
 	}
-	return fInvert ? true : false;
+	return false;
 }
 
 G4bool TsFilterByComponentAndChildren::AcceptTrack(const G4Track*) const
