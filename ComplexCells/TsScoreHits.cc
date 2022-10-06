@@ -81,8 +81,9 @@ G4bool TsScoreHits::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 
 	if (fIncludeChemistry && aTrack->GetTrackID() < 0) {
 		auto globalTime = aStep->GetPreStepPoint()->GetGlobalTime();
+		auto itNextTime = fNextTimeForTrack.emplace(aTrack->GetTrackID(), fTimesToRecord.front()).first;
 
-		if (globalTime >= fNextTimeForTrack[aTrack->GetTrackID()] && fNextTimeForTrack[aTrack->GetTrackID()] >= 0)
+		if (globalTime >= itNextTime->second && itNextTime->second > 0)
 		{
 			G4TouchableHistory* touchable = (G4TouchableHistory*)(aStep->GetPreStepPoint()->GetTouchable());
 
@@ -97,7 +98,7 @@ G4bool TsScoreHits::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 
 			auto itNextTime = std::upper_bound(fTimesToRecord.begin(), fTimesToRecord.end(), globalTime);
 			if (itNextTime == fTimesToRecord.end())
-				fNextTimeForTrack[aTrack->GetTrackID()] = -1;
+				fNextTimeForTrack[aTrack->GetTrackID()] = 0;
 			else
 				fNextTimeForTrack[aTrack->GetTrackID()] = *itNextTime;
 		}
