@@ -127,8 +127,6 @@ void TsMoleculeTracker::UserHookForChemicalStep(const G4Step* aStep)
 {
 	auto aTrack = aStep->GetTrack();
 
-	// if (!GetFilter()->Accept(aStep))
-	// 	return;
 	if (aTrack->GetTrackID() > -1) // this is a physical track
 		return;
 

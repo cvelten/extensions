@@ -1,4 +1,4 @@
-// Scorer for TsScoreHits
+// Scorer for Hits
 //
 // ********************************************************************
 // *                                                                  *
@@ -55,7 +55,7 @@ TsScoreHits::TsScoreHits(TsParameterManager* pM, TsMaterialManager* mM, TsGeomet
 		fTimesToRecord.push_back(fTimeCut);
 	}
 
-	fIncludeChemistry = true;
+	fIncludeChemistry = false;
 	fIncludePhysics = true;
 	if (fPm->ParameterExists(GetFullParmName("IncludeChemicalTrack")))
 		fIncludeChemistry = fPm->GetBooleanParameter(GetFullParmName("IncludeChemicalTrack"));

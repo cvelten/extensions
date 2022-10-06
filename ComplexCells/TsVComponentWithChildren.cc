@@ -169,6 +169,54 @@ G4ThreeVector TsVComponentWithChildren::GetPointWithinVolume(G4VSolid* solid, G4
 	return surfacePoint + stepLength * (-surfaceNormal);
 }
 
+void TsVComponentWithChildren::DuplicateSource()
+{
+	std::vector<G4String> clonedSources, cloningVolumes;
+
+	if (fPm->ParameterExists("DuplicateSourcesForVolumes/Sources")) {
+		auto n = fPm->GetVectorLength("DuplicateSourcesForVolumes/Sources");
+		auto sources = fPm->GetStringVector("DuplicateSourcesForVolumes/Sources");
+		clonedSources = std::vector<G4String>(sources, sources + n);
+		delete[] sources;
+
+		n = fPm->GetVectorLength("DuplicateSourcesForVolumes/Volumes");
+		auto volumes = fPm->GetStringVector("DuplicateSourcesForVolumes/Volumes");
+		cloningVolumes = std::vector<G4String>(volumes, volumes + n);
+		delete[] volumes;
+	}
+
+	if (fPm->ParameterExists(GetFullParmName("DuplicateSourceForVolume")))
+	{
+		auto sourceName = fPm->GetStringParameter(GetFullParmName("DuplicateSourceForVolume"));
+		if (!std::binary_search(clonedSources.begin(), clonedSources.end(), sourceName))
+			clonedSources.push_back(sourceName);
+		if (!std::binary_search(cloningVolumes.begin(), cloningVolumes.end(), GetName()))
+			cloningVolumes.push_back(GetName());
+	}
+
+	if (std::binary_search(cloningVolumes.begin(), cloningVolumes.end(), GetName())) {
+		for (auto sourceName : clonedSources) {
+			std::vector<G4String> parameterNames;
+			fPm->GetParameterNamesStartingWith("So/" + sourceName + "/", &parameterNames);
+
+			for (auto parName : parameterNames) {
+				G4String nameWithoutSlash = StringReplace(GetName(), "/", "_");
+				G4String newParName = StringReplace(parName, sourceName, sourceName + "_" + nameWithoutSlash);
+
+				if (newParName.find("/Component") != std::string::npos)
+				{
+					G4String component = fPm->GetStringParameter(parName) + "_" + nameWithoutSlash;
+					fPm->AddParameter("s:So/" + sourceName + "_" + nameWithoutSlash + "/Component", '"' + GetName() + '"');
+					G4cerr << "s:So/" + sourceName + "_" + nameWithoutSlash + "/Component = \"" << GetName() << '"' << G4endl;
+					continue;
+				}
+				fPm->CloneParameter(parName, newParName);
+			}
+			G4cout << GetName() << " cloned source parameters for source '" << sourceName << "'." << G4endl;
+		}
+	}
+}
+
 G4String TsVComponentWithChildren::ConstructParameterName(const char* component, const char* parmName)
 {
 	// G4String s_component = G4String(component

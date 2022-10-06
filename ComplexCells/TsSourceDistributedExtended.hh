@@ -28,7 +28,6 @@ public:
 	void UpdateForNewRun(G4bool rebuiltSomeComponents);
 
 	void ResolveParameters();
-
 	void PrepareSampledPoints();
 
 private:
@@ -36,6 +35,7 @@ private:
 	G4int fNumberOfSourcePointsPerHistory;
 	G4int fPreviousNumberOfSourcePoints;
 	G4bool fRedistributePointsOnNewRun;
+	std::vector<G4String> fRestrictToVolumes;
 
 	std::vector<G4Point3D*> fSampledPoints;
 

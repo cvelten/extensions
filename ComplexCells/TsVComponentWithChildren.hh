@@ -17,6 +17,8 @@ public:
 public:
 	G4ThreeVector GetPointWithinVolume(G4VSolid* solid, G4double minDistanceFromSurface = 0) const;
 
+	virtual void DuplicateSource();
+
 	static G4String ConstructParameterName(const char* component, const char* parmName);
 	static std::string StringReplace(std::string str, const std::string& from, const std::string& to);
 

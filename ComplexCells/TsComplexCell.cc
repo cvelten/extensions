@@ -71,6 +71,10 @@ G4VPhysicalVolume* TsComplexCell::Construct()
 
 	InstantiateChildren(fEnvelopePhys);
 
+	//
+	// Duplicate Source
+	TsVComponentWithChildren::DuplicateSource();
+
 	return fEnvelopePhys;
 }
 
@@ -146,8 +150,12 @@ void TsComplexCell::ConstructLysosomes()
 	auto nComplexes = fPm->GetIntegerParameter(GetFullParmName("Lysosome/Complexes", "N"));
 	auto rComplexes = fPm->ParameterExists(GetFullParmName("Lysosome/Complexes/Radius")) ? fPm->GetDoubleParameter(GetFullParmName("Lysosome/Complexes", "Radius"), "Length") : 0.1 * micrometer;
 
+	if (!fPm->ParameterExists(GetFullParmName("Lysosome/Complexes", "Material")))
+		fPm->AddParameter("s:" + GetFullParmName("Lysosome/Complexes", "Material"), '"' + fPm->GetStringParameter(GetFullParmName("Lysosome", "Material")) + '"');
 	if (!fPm->ParameterExists(GetFullParmName("Lysosome/Complexes", "Color")))
 		fPm->AddParameter("s:" + GetFullParmName("Lysosome/Complexes", "Color"), "\"gray\"");
+	if (!fPm->ParameterExists(GetFullParmName("Lysosome/Complexes", "Invisible")))
+		fPm->AddParameter("b:" + GetFullParmName("Lysosome/Complexes", "Invisible"), "\"True\"");
 
 	// Nanomaterial
 
@@ -211,13 +219,20 @@ void TsComplexCell::ConstructLysosomes()
 			fPm->CloneParameter(GetFullParmName("Lysosome/SemiAxisB"), ConstructParameterName((*it)->GetName(), "SemiAxisB"));
 			fPm->CloneParameter(GetFullParmName("Lysosome/SemiAxisC"), ConstructParameterName((*it)->GetName(), "SemiAxisC"));
 			fPm->CloneParameter(GetFullParmName("Lysosome/Color"), ConstructParameterName((*it)->GetName(), "Color"));
-			fPm->CloneParameter(GetFullParmName("Lysosome/Complexes/N"), ConstructParameterName((*it)->GetName(), "Complexes/N"));
-			fPm->CloneParameter(GetFullParmName("Lysosome/Complexes/Radius"), ConstructParameterName((*it)->GetName(), "Complexes/Radius"));
-			fPm->CloneParameter(GetFullParmName("Lysosome/Complexes/Material"), ConstructParameterName((*it)->GetName(), "Complexes/Material"));
-			fPm->CloneParameter(GetFullParmName("Lysosome/Complexes/Nanomaterial/Number"), ConstructParameterName((*it)->GetName(), "Complexes/Nanomaterial/Number"));
-			fPm->CloneParameter(GetFullParmName("Lysosome/Complexes/Nanomaterial/Radius"), ConstructParameterName((*it)->GetName(), "Complexes/Nanomaterial/Radius"));
-			fPm->CloneParameter(GetFullParmName("Lysosome/Complexes/Nanomaterial/Material"), ConstructParameterName((*it)->GetName(), "Complexes/Nanomaterial/Material"));
-			fPm->CloneParameter(GetFullParmName("Lysosome/Complexes/Nanomaterial/Invisible"), ConstructParameterName((*it)->GetName(), "Complexes/Nanomaterial/Invisible"));
+			if (nComplexes > 0) {
+				fPm->CloneParameter(GetFullParmName("Lysosome/Complexes/N"), ConstructParameterName((*it)->GetName(), "Complexes/N"));
+				fPm->CloneParameter(GetFullParmName("Lysosome/Complexes/Radius"), ConstructParameterName((*it)->GetName(), "Complexes/Radius"));
+				fPm->CloneParameter(GetFullParmName("Lysosome/Complexes/Material"), ConstructParameterName((*it)->GetName(), "Complexes/Material"));
+				if (fPm->ParameterExists(GetFullParmName("Lysosome/Complexes/Nanomaterial/Number")) && fPm->GetIntegerParameter(GetFullParmName("Lysosome/Complexes/Nanomaterial/Number")) > 0) {
+					fPm->CloneParameter(GetFullParmName("Lysosome/Complexes/Nanomaterial/Number"), ConstructParameterName((*it)->GetName(), "Complexes/Nanomaterial/Number"));
+					fPm->CloneParameter(GetFullParmName("Lysosome/Complexes/Nanomaterial/Radius"), ConstructParameterName((*it)->GetName(), "Complexes/Nanomaterial/Radius"));
+					fPm->CloneParameter(GetFullParmName("Lysosome/Complexes/Nanomaterial/Material"), ConstructParameterName((*it)->GetName(), "Complexes/Nanomaterial/Material"));
+					fPm->CloneParameter(GetFullParmName("Lysosome/Complexes/Nanomaterial/Invisible"), ConstructParameterName((*it)->GetName(), "Complexes/Nanomaterial/Invisible"));
+				}
+			}
+			else {
+				fPm->AddParameter("i:" + ConstructParameterName((*it)->GetName(), "Complexes/N"), "0");
+			}
 
 			auto trans = (*it)->GetTranslation();
 			auto rot = (*it)->GetRotation();

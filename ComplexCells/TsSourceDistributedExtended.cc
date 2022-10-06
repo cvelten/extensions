@@ -23,8 +23,9 @@
 #include "Randomize.hh"
 
 TsSourceDistributedExtended::TsSourceDistributedExtended(TsParameterManager* pM, TsSourceManager* psM, G4String sourceName)
-	: TsSource(pM, psM, sourceName), fNumberOfSourcePoints(0), fNumberOfSourcePointsPerHistory(1), fPreviousNumberOfSourcePoints(-1),
-	  fRedistributePointsOnNewRun(false)
+	: TsSource(pM, psM, sourceName),
+	  fNumberOfSourcePoints(0), fNumberOfSourcePointsPerHistory(1), fPreviousNumberOfSourcePoints(-1), fRedistributePointsOnNewRun(false),
+	  fRestrictToVolumes()
 {
 	ResolveParameters();
 }
@@ -83,10 +84,24 @@ void TsSourceDistributedExtended::ResolveParameters()
 		G4cout << "Accepted values are Flat and Gaussian." << G4endl;
 		fPm->AbortSession(1);
 	}
+
+	if (fPm->ParameterExists(GetFullParmName("RestrictToVolumesContaining"))) {
+		auto n = fPm->GetVectorLength(GetFullParmName("RestrictToVolumesContaining"));
+		auto arr = fPm->GetStringVector(GetFullParmName("RestrictToVolumesContaining"));
+		for (auto i = 0; i < n; ++i)
+		{
+			G4String s = *(arr + i);
+			s.toLower();
+			fRestrictToVolumes.push_back(s);
+		}
+		delete[] arr;
+	}
 }
 
 void TsSourceDistributedExtended::PrepareSampledPoints()
 {
+	G4cerr << "(" << GetName() << ")TsSourceDistributedExtended::PrepareSampledPoints()" << G4endl;
+
 	fPreviousNumberOfSourcePoints = fNumberOfSourcePoints;
 	fSampledPoints.clear();
 
@@ -116,8 +131,34 @@ void TsSourceDistributedExtended::PrepareSampledPoints()
 	G4VPhysicalVolume* foundVolume;
 
 	std::vector<G4VPhysicalVolume*> volumes = fComponent->GetAllPhysicalVolumes(recursivelyIncludeChildren);
+	if (fRestrictToVolumes.size() > 0) {
+		for (auto it = volumes.begin(); it != volumes.end();)
+		{
+			G4String volumeName = (*it)->GetName();
+			volumeName.toLower();
 
-	for (G4int iPoint = 0; iPoint < fNumberOfSourcePoints; iPoint++) {
+			auto found = false;
+			for (auto substr : fRestrictToVolumes) {
+				if (volumeName.find(substr) != std::string::npos) {
+					found = true;
+					break;
+				}
+			}
+			if (!found)
+				volumes.erase(it);
+			else
+				++it;
+		}
+	}
+
+	if (volumes.size() == 0) {
+		G4cerr << "TOPAS is exiting due to a serious error in the distributed source: " << GetName() << G4endl;
+		G4cerr << "The number of volumes for findin points must be greater than zero." << G4endl;
+		fPm->AbortSession(1);
+	}
+
+	for (G4int iPoint = 0; iPoint < fNumberOfSourcePoints; iPoint++)
+	{
 		G4int counter = 0;
 		G4bool foundPoint = false;
 		while (!foundPoint) {
