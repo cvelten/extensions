@@ -27,7 +27,8 @@
 
 TsScoreHits::TsScoreHits(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
 						 G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer)
-	: TsVNtupleScorer(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
+	: TsVNtupleScorer(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer),
+	  fNextTimeForTrack(), fHitsMap(), fEnergyDepositedMap()
 {
 	SetUnit("");
 
