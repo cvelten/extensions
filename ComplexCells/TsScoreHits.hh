@@ -14,6 +14,8 @@
 
 #include "TsVNtupleScorer.hh"
 
+#include <unordered_map>
+
 struct TsScoreHitsIndex;
 
 class TsScoreHits : public TsVNtupleScorer
@@ -55,8 +57,8 @@ private:
 	G4bool fIncludePhysics;
 
 public:
-	const std::map<TsScoreHitsIndex, G4int>& GetHitCountMap() const { return fHitsMap; }
-	const std::map<TsScoreHitsIndex, G4double>& GetEnergyDepositedMap() const { return fEnergyDepositedMap; }
+	const std::unordered_map<TsScoreHitsIndex, G4int>& GetHitCountMap() const { return fHitsMap; }
+	const std::unordered_map<TsScoreHitsIndex, G4double>& GetEnergyDepositedMap() const { return fEnergyDepositedMap; }
 };
 
 struct TsScoreHitsIndex
