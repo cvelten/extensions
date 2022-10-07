@@ -114,7 +114,9 @@ G4bool TsScoreHits::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 		idx.VolumeName = touchable->GetVolume()->GetName();
 		idx.VolumeCopyNumber = touchable->GetVolume()->GetCopyNo();
 
+		G4cerr << "++fHitsMap" << G4endl;
 		++fHitsMap[idx];
+		G4cerr << "fEnergyDepositedMap" << G4endl;
 		fEnergyDepositedMap[idx] += aStep->GetTotalEnergyDeposit();
 
 		return true;
