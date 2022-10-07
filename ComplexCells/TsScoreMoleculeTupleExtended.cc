@@ -1,4 +1,4 @@
-// Scorer for TsScoreMoleculeTupleExtended
+// Scorer for MoleculeTupleExtended
 //
 // ********************************************************************
 // *                                                                  *
@@ -159,6 +159,10 @@ G4bool TsScoreMoleculeTupleExtended::ProcessHits(G4Step* aStep, G4TouchableHisto
 	G4Track* aTrack = aStep->GetTrack();
 
 	if (fIncludeChemistry && aTrack->GetTrackID() < 0) {
+		G4cerr << "Molecule Tracking must be reimplemented" << G4endl;
+		fPm->AbortSession(1);
+
+		/*
 		fGlobalTime = aStep->GetPreStepPoint()->GetGlobalTime();
 
 		if (fTimeToRecord.size() > 0 && fGlobalTime >= fTimeToRecord.front()) {
@@ -203,6 +207,7 @@ G4bool TsScoreMoleculeTupleExtended::ProcessHits(G4Step* aStep, G4TouchableHisto
 
 			return true;
 		}
+		*/
 	}
 	else if (fIncludePhysics && aStep->GetTotalEnergyDeposit() > 0) {
 		G4TouchableHistory* touchable = (G4TouchableHistory*)(aStep->GetPreStepPoint()->GetTouchable());
