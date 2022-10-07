@@ -127,6 +127,8 @@ G4bool TsScoreHits::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 
 void TsScoreHits::AbsorbResultsFromWorkerScorer(TsVScorer* workerScorer)
 {
+	G4cerr << "TsScoreHits::AbsorbResultsFromWorkerScorer" << G4endl;
+
 	TsVNtupleScorer::AbsorbResultsFromWorkerScorer(workerScorer);
 
 	TsScoreHits* worker = dynamic_cast<TsScoreHits*>(workerScorer);
