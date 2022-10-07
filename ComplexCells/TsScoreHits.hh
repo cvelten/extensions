@@ -48,8 +48,8 @@ private:
 	std::vector<G4double> fTimesToRecord;
 	std::map<G4int, G4double> fNextTimeForTrack;
 
-	std::map<TsScoreHitsIndex, G4int> fHitsMap;
-	std::map<TsScoreHitsIndex, G4double> fEnergyDepositedMap;
+	std::unordered_map<TsScoreHitsIndex, G4int> fHitsMap;
+	std::unordered_map<TsScoreHitsIndex, G4double> fEnergyDepositedMap;
 
 	G4bool fIncludeChemistry;
 	G4bool fIncludePhysics;
@@ -69,13 +69,13 @@ struct TsScoreHitsIndex
 
 	TsScoreHitsIndex() : IsMolecule(false), Time(0) {}
 
-	bool operator<(TsScoreHitsIndex const& other) const
-	{
-		return ParticleName < other.ParticleName ||
-			   VolumeName < other.VolumeName ||
-			   VolumeCopyNumber < other.VolumeCopyNumber ||
-			   Time < other.Time;
-	}
+	// bool operator<(TsScoreHitsIndex const& other) const
+	// {
+	// 	return ParticleName < other.ParticleName || (ParticleName ==
+	// 		   VolumeName < other.VolumeName ||
+	// 		   VolumeCopyNumber < other.VolumeCopyNumber ||
+	// 		   Time < other.Time;
+	// }
 };
 
 #endif
