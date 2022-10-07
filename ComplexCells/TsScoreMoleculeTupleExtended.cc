@@ -146,7 +146,7 @@ TsScoreMoleculeTupleExtended::TsScoreMoleculeTupleExtended(TsParameterManager* p
 		fNtuple->RegisterColumnF(&fEnergyDeposited, "Energy Deposited", "keV");
 
 	if (fIncludeKineticEnergy)
-		fNtuple->RegisterColumnF(&fKineticEnergy, "Kinetice Energy", "keV");
+		fNtuple->RegisterColumnF(&fKineticEnergy, "Kinetic Energy", "keV");
 }
 
 G4bool TsScoreMoleculeTupleExtended::ProcessHits(G4Step* aStep, G4TouchableHistory*)

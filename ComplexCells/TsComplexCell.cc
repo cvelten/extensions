@@ -88,7 +88,7 @@ void TsComplexCell::ConstructNucleus()
 	if (!fPm->ParameterExists(GetFullParmName("Nucleus", "Material")))
 		fPm->CloneParameter(GetFullParmName("Material"), GetFullParmName("Nucleus", "Material"));
 	if (!fPm->ParameterExists(GetFullParmName("Nucleus", "DrawingStyle")))
-		fPm->AddParameter("s:" + GetFullParmName("Nucleus", "DrawingStyle"), "\"wireframe\"");
+		fPm->AddParameter("s:" + GetFullParmName("Nucleus", "DrawingStyle"), "\"solid\"");
 	if (!fPm->ParameterExists(GetFullParmName("Nucleus", "Color")))
 		fPm->AddParameter("s:" + GetFullParmName("Nucleus", "Color"), "\"red\"");
 
@@ -141,8 +141,12 @@ void TsComplexCell::ConstructLysosomes()
 	auto semiAxisB = fPm->GetDoubleParameter(GetFullParmName("Lysosome", "SemiAxisB"), "Length");
 	auto semiAxisC = fPm->GetDoubleParameter(GetFullParmName("Lysosome", "SemiAxisC"), "Length");
 
-	std::vector<G4String> lysosomeParams;
-	fPm->GetParameterNamesStartingWith(GetFullParmName("Lysosome"), &lysosomeParams);
+	if (!fPm->ParameterExists(GetFullParmName("Lysosome", "Material")))
+		fPm->CloneParameter(GetFullParmName("Material"), GetFullParmName("Lysosome", "Material"));
+	if (!fPm->ParameterExists(GetFullParmName("Lysosome", "DrawingStyle")))
+		fPm->AddParameter("s:" + GetFullParmName("Lysosome", "DrawingStyle"), "\"wireframe\"");
+	if (!fPm->ParameterExists(GetFullParmName("Lysosome", "Color")))
+		fPm->AddParameter("s:" + GetFullParmName("Lysosome", "Color"), "\"yellow\"");
 
 	//
 	// Enzyme Complexes (with nanomaterial)
@@ -151,7 +155,7 @@ void TsComplexCell::ConstructLysosomes()
 	auto rComplexes = fPm->ParameterExists(GetFullParmName("Lysosome/Complexes/Radius")) ? fPm->GetDoubleParameter(GetFullParmName("Lysosome/Complexes", "Radius"), "Length") : 0.1 * micrometer;
 
 	if (!fPm->ParameterExists(GetFullParmName("Lysosome/Complexes", "Material")))
-		fPm->AddParameter("s:" + GetFullParmName("Lysosome/Complexes", "Material"), '"' + fPm->GetStringParameter(GetFullParmName("Lysosome", "Material")) + '"');
+		fPm->CloneParameter(GetFullParmName("Lysosome", "Material"), GetFullParmName("Lysosome/Complexes", "Material"));
 	if (!fPm->ParameterExists(GetFullParmName("Lysosome/Complexes", "Color")))
 		fPm->AddParameter("s:" + GetFullParmName("Lysosome/Complexes", "Color"), "\"gray\"");
 	if (!fPm->ParameterExists(GetFullParmName("Lysosome/Complexes", "Invisible")))
@@ -197,6 +201,10 @@ void TsComplexCell::ConstructLysosomes()
 			if (!std::all_of(nanomaterialNumbers.cbegin(), nanomaterialNumbers.cend(), [&max_num](G4double n) { return n >= 0 && n <= max_num; }))
 				OutOfRange(GetFullParmName("Lysosome/Complexes", "NanomaterialNumbers"), G4String("must have values within [0, ") + std::to_string(max_num));
 		}
+
+		// Use parent material if not specified
+		if (!fPm->ParameterExists(GetFullParmName("Lysosome/Complexes/Nanomaterial", "Material")))
+			fPm->CloneParameter(GetFullParmName("Lysosome/Complexes", "Material"), GetFullParmName("Lysosome/Complexes/Nanomaterial", "Material"));
 
 		// Add color & drawing style if not specified
 		if (!fPm->ParameterExists(GetFullParmName("Lysosome/Complexes/Nanomaterial", "Color")))
