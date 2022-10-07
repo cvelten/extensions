@@ -14,8 +14,6 @@
 
 #include "TsVNtupleScorer.hh"
 
-#include <unordered_map>
-
 struct TsScoreHitsIndex;
 
 class TsScoreHits : public TsVNtupleScorer
@@ -50,15 +48,15 @@ private:
 	std::vector<G4double> fTimesToRecord;
 	std::map<G4int, G4double> fNextTimeForTrack;
 
-	std::unordered_map<TsScoreHitsIndex, G4int> fHitsMap;
-	std::unordered_map<TsScoreHitsIndex, G4double> fEnergyDepositedMap;
+	std::map<TsScoreHitsIndex, G4int> fHitsMap;
+	std::map<TsScoreHitsIndex, G4double> fEnergyDepositedMap;
 
 	G4bool fIncludeChemistry;
 	G4bool fIncludePhysics;
 
 public:
-	const std::unordered_map<TsScoreHitsIndex, G4int>& GetHitCountMap() const { return fHitsMap; }
-	const std::unordered_map<TsScoreHitsIndex, G4double>& GetEnergyDepositedMap() const { return fEnergyDepositedMap; }
+	const std::map<TsScoreHitsIndex, G4int>& GetHitCountMap() const { return fHitsMap; }
+	const std::map<TsScoreHitsIndex, G4double>& GetEnergyDepositedMap() const { return fEnergyDepositedMap; }
 };
 
 struct TsScoreHitsIndex
@@ -71,13 +69,13 @@ struct TsScoreHitsIndex
 
 	TsScoreHitsIndex() : IsMolecule(false), Time(0) {}
 
-	// bool operator<(TsScoreHitsIndex const& other) const
-	// {
-	// 	return ParticleName < other.ParticleName || (ParticleName ==
-	// 		   VolumeName < other.VolumeName ||
-	// 		   VolumeCopyNumber < other.VolumeCopyNumber ||
-	// 		   Time < other.Time;
-	// }
+	bool operator<(TsScoreHitsIndex const& other) const
+	{
+		return ParticleName < other.ParticleName ||
+			   (ParticleName == other.ParticleName && VolumeName < other.VolumeName) ||
+			   (ParticleName == other.ParticleName && VolumeName == other.VolumeName && VolumeCopyNumber < other.VolumeCopyNumber) ||
+			   (ParticleName == other.ParticleName && VolumeName == other.VolumeName && VolumeCopyNumber == other.VolumeCopyNumber && Time < other.Time);
+	}
 };
 
 #endif
