@@ -82,7 +82,6 @@ G4bool TsScoreHits::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 
 	if (fIncludeChemistry && aTrack->GetTrackID() < 0) {
 		auto globalTime = aStep->GetPreStepPoint()->GetGlobalTime();
-		G4cerr << "itNexTime" << G4endl;
 		auto itNextTime = fNextTimeForTrack.emplace(aTrack->GetTrackID(), fTimesToRecord.front()).first;
 
 		if (globalTime >= itNextTime->second && itNextTime->second > 0)
@@ -96,7 +95,6 @@ G4bool TsScoreHits::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 			idx.VolumeCopyNumber = touchable->GetVolume()->GetCopyNo();
 			idx.Time = fNextTimeForTrack[aTrack->GetTrackID()];
 
-			G4cerr << "++fHitsMap" << G4endl;
 			++fHitsMap[idx];
 
 			auto itNextTime = std::upper_bound(fTimesToRecord.begin(), fTimesToRecord.end(), globalTime);
@@ -114,9 +112,7 @@ G4bool TsScoreHits::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 		idx.VolumeName = touchable->GetVolume()->GetName();
 		idx.VolumeCopyNumber = touchable->GetVolume()->GetCopyNo();
 
-		G4cerr << "++fHitsMap" << G4endl;
 		++fHitsMap[idx];
-		G4cerr << "fEnergyDepositedMap: " << idx.ParticleName << " " << idx.VolumeName << G4endl;
 		fEnergyDepositedMap[idx] += aStep->GetTotalEnergyDeposit();
 
 		return true;
