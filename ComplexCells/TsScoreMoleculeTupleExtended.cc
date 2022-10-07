@@ -50,7 +50,7 @@ TsScoreMoleculeTupleExtended::TsScoreMoleculeTupleExtended(TsParameterManager* p
 		{
 			if (times[i] > fTimeCut)
 			{
-				G4cerr << GetName() << " specified a time to record greater than the time cut (default: 1 us)" << G4endl;
+				G4cerr << GetName() << " specified a Time to record greater than the Time cut (default: 1 us)" << G4endl;
 				G4cerr << "at which chemical tracks will be killed" << G4endl;
 			}
 			fTimeToRecord.push_back(times[i]);
@@ -111,22 +111,22 @@ TsScoreMoleculeTupleExtended::TsScoreMoleculeTupleExtended(TsParameterManager* p
 		fNtuple->RegisterColumnI(&fEvt, "EventID");
 
 	if (fIncludeTrackID)
-		fNtuple->RegisterColumnI(&fTrackID, "Track ID");
+		fNtuple->RegisterColumnI(&fTrackID, "TrackID");
 
 	if (fIncludeStepNumber)
-		fNtuple->RegisterColumnI(&fStepNumber, "Step number");
+		fNtuple->RegisterColumnI(&fStepNumber, "Step Number");
 
 	if (fIncludeParticleName)
-		fNtuple->RegisterColumnS(&fParticleName, "Particle name");
+		fNtuple->RegisterColumnS(&fParticleName, "Particle Name");
 
 	if (fIncludeProcessName)
-		fNtuple->RegisterColumnS(&fProcessName, "Process name");
+		fNtuple->RegisterColumnS(&fProcessName, "Process Name");
 
 	if (fIncludeVolumeName)
-		fNtuple->RegisterColumnS(&fVolumeName, "Volume name");
+		fNtuple->RegisterColumnS(&fVolumeName, "Volume Name");
 
 	if (fIncludeVolumeCopyNumber)
-		fNtuple->RegisterColumnI(&fVolumeCopyNumber, "Volume copy number");
+		fNtuple->RegisterColumnI(&fVolumeCopyNumber, "Volume copy Number");
 
 	if (fIncludeParentID) {
 		fNtuple->RegisterColumnI(&fParentAID, "ParentA ID");
@@ -134,19 +134,19 @@ TsScoreMoleculeTupleExtended::TsScoreMoleculeTupleExtended(TsParameterManager* p
 	}
 
 	if (fIncludeVertex) {
-		fNtuple->RegisterColumnF(&fVertexPositionX, "Vertex position x", "um");
-		fNtuple->RegisterColumnF(&fVertexPositionY, "Vertex position y", "um");
-		fNtuple->RegisterColumnF(&fVertexPositionZ, "Vertex position z", "um");
+		fNtuple->RegisterColumnF(&fVertexPositionX, "Vertex Position X", "um");
+		fNtuple->RegisterColumnF(&fVertexPositionY, "Vertex Position Y", "um");
+		fNtuple->RegisterColumnF(&fVertexPositionZ, "Vertex Position Z", "um");
 	}
 
 	if (fIncludeGlobalTime)
-		fNtuple->RegisterColumnF(&fGlobalTime, "Global time", "ps");
+		fNtuple->RegisterColumnF(&fGlobalTime, "Global Time", "ps");
 
 	if (fIncludeEnergyDeposited)
-		fNtuple->RegisterColumnF(&fEnergyDeposited, "Energy deposited", "keV");
+		fNtuple->RegisterColumnF(&fEnergyDeposited, "Energy Deposited", "keV");
 
 	if (fIncludeKineticEnergy)
-		fNtuple->RegisterColumnF(&fKineticEnergy, "Kinetice energy", "keV");
+		fNtuple->RegisterColumnF(&fKineticEnergy, "Kinetice Energy", "keV");
 }
 
 G4bool TsScoreMoleculeTupleExtended::ProcessHits(G4Step* aStep, G4TouchableHistory*)
