@@ -116,7 +116,7 @@ G4bool TsScoreHits::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 
 		G4cerr << "++fHitsMap" << G4endl;
 		++fHitsMap[idx];
-		G4cerr << "fEnergyDepositedMap" << G4endl;
+		G4cerr << "fEnergyDepositedMap: " << idx.ParticleName << " " << idx.VolumeName << G4endl;
 		fEnergyDepositedMap[idx] += aStep->GetTotalEnergyDeposit();
 
 		return true;
