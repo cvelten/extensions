@@ -67,9 +67,9 @@ struct TsMoleculeTrackerIndex
 	bool operator<(TsMoleculeTrackerIndex const& other) const
 	{
 		return ParticleName < other.ParticleName ||
-			   VolumeName < other.VolumeName ||
-			   VolumeCopyNumber < other.VolumeCopyNumber ||
-			   Time < other.Time;
+			   (ParticleName == other.ParticleName && VolumeName < other.VolumeName) ||
+			   (ParticleName == other.ParticleName && VolumeName == other.VolumeName && VolumeCopyNumber < other.VolumeCopyNumber) ||
+			   (ParticleName == other.ParticleName && VolumeName == other.VolumeName && VolumeCopyNumber == other.VolumeCopyNumber && Time < other.Time);
 	}
 };
 
