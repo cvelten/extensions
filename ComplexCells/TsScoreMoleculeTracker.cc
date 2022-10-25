@@ -10,12 +10,13 @@
 // ********************************************************************
 //
 
-#include "TsMoleculeTracker.hh"
+#include "TsScoreMoleculeTracker.hh"
 
 #include "G4ParticleDefinition.hh"
 #include "G4ProcessManager.hh"
 #include "G4Run.hh"
 #include "G4RunManager.hh"
+#include "G4Scheduler.hh"
 #include "G4VProcess.hh"
 
 #include "G4SteppingManager.hh"
@@ -25,9 +26,10 @@
 
 #include "G4Molecule.hh"
 
-TsMoleculeTracker::TsMoleculeTracker(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
-									 G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer)
-	: TsVNtupleScorer(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
+TsScoreMoleculeTracker::TsScoreMoleculeTracker(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
+											   G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer)
+	: TsVNtupleScorer(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer),
+	  fReportTimeSteps(true)
 {
 	SetUnit("");
 
@@ -60,30 +62,109 @@ TsMoleculeTracker::TsMoleculeTracker(TsParameterManager* pM, TsMaterialManager* 
 	fNtuple->RegisterColumnI(&fHits, "Hits");
 }
 
-G4bool TsMoleculeTracker::ProcessHits(G4Step* aStep, G4TouchableHistory*)
+G4bool TsScoreMoleculeTracker::ProcessHits(G4Step*, G4TouchableHistory*)
 {
-	if (!fIsActive) {
+	if (!fIsActive)
 		fSkippedWhileInactive++;
-		return false;
-	}
-
 	return false;
 }
 
-void TsMoleculeTracker::AbsorbResultsFromWorkerScorer(TsVScorer* workerScorer)
+void TsScoreMoleculeTracker::UserHookForPreTimeStepAction()
+{
+	// if (fReportTimeSteps)
+	// {
+	// 	G4cout << "TsScoreMoleculeTracker::UserHookForPreTimeStepAction() @ "
+	// 		   << G4Scheduler::Instance()->GetTimeStep() / ps << " ps"
+	// 		   << G4endl;
+	// }
+}
+void TsScoreMoleculeTracker::UserHookForPostTimeStepAction()
+{
+	// if (fReportTimeSteps)
+	// {
+	// 	G4cout << "TsScoreMoleculeTracker::UserHookForPostTimeStepAction() @ "
+	// 		   << G4Scheduler::Instance()->GetTimeStep() / ps << " ps"
+	// 		   << G4endl;
+	// }
+}
+
+void TsScoreMoleculeTracker::UserHookForChemicalStep(const G4Step* aStep)
+{
+	auto aTrack = aStep->GetTrack();
+
+	if (aTrack->GetTrackID() > -1) // this is a physical track
+		return;
+
+	auto globalTime = aStep->GetPreStepPoint()->GetGlobalTime();
+	auto itNextTime = fNextTimeForTrack.emplace(aTrack->GetTrackID(), fTimesToRecord.front()).first;
+
+	if (globalTime >= itNextTime->second && itNextTime->second > 0)
+	{
+		if (GetFilter()->Accept(aStep))
+		{
+			G4TouchableHistory* touchable = (G4TouchableHistory*)(aStep->GetPreStepPoint()->GetTouchable());
+
+			TsScoreMoleculeTrackerIndex idx;
+			idx.IsMolecule = true;
+			idx.ParticleName = GetMolecule(aTrack)->GetName();
+			idx.VolumeName = touchable->GetVolume()->GetName();
+			idx.VolumeCopyNumber = touchable->GetVolume()->GetCopyNo();
+			idx.Time = fNextTimeForTrack[aTrack->GetTrackID()];
+
+			++fHitsMap[idx];
+
+			if (fReportTimeSteps)
+			{
+				G4cout << "TsScoreMoleculeTracker::UserHookForChemicalStep(const G4Step* aStep): "
+					   << "TrackID=" << aTrack->GetTrackID() << " @ "
+					   << idx.Time / ps << " ps: "
+					   << idx.ParticleName << " in " << idx.VolumeName
+					   << G4endl;
+			}
+		}
+
+		auto itNextTime = std::upper_bound(fTimesToRecord.begin(), fTimesToRecord.end(), globalTime);
+		if (itNextTime == fTimesToRecord.end())
+			fNextTimeForTrack[aTrack->GetTrackID()] = 0; // do not track anymore
+		else
+			fNextTimeForTrack[aTrack->GetTrackID()] = *itNextTime;
+	}
+
+	if (false)
+	{
+		if (aStep->GetPreStepPoint()->GetStepStatus() == fGeomBoundary)
+		{
+			G4cout << "Step from " << aStep->GetPreStepPoint()->GetTouchable()->GetVolume()->GetName()
+				   << " into " << aStep->GetPreStepPoint()->GetTouchable()->GetVolume()->GetName()
+				   << G4endl;
+		}
+		else
+		{
+			G4cout << "Step within " << aStep->GetPreStepPoint()->GetTouchable()->GetVolume()->GetName()
+				   << G4endl;
+		}
+		G4cout << "Particle Name: "
+			   << (aTrack->GetTrackID() < 0 ? GetMolecule(aTrack)->GetName() : aTrack->GetParticleDefinition()->GetParticleName())
+			   << G4endl;
+		G4cout << "Time: " << aStep->GetPreStepPoint()->GetGlobalTime() / ps << " ps"
+			   << G4endl;
+	}
+}
+
+void TsScoreMoleculeTracker::AbsorbResultsFromWorkerScorer(TsVScorer* workerScorer)
 {
 	TsVNtupleScorer::AbsorbResultsFromWorkerScorer(workerScorer);
 
-	TsMoleculeTracker* worker = dynamic_cast<TsMoleculeTracker*>(workerScorer);
+	TsScoreMoleculeTracker* worker = dynamic_cast<TsScoreMoleculeTracker*>(workerScorer);
 
 	for (auto it = worker->GetHitCountMap().cbegin();
 		 it != worker->GetHitCountMap().cend(); ++it)
 		fHitsMap[it->first] += it->second;
 }
 
-void TsMoleculeTracker::Output()
+void TsScoreMoleculeTracker::Output()
 {
-	std::vector<TsMoleculeTrackerIndex> keys;
+	std::vector<TsScoreMoleculeTrackerIndex> keys;
 	for (auto it = fHitsMap.cbegin(); it != fHitsMap.cend(); ++it)
 		keys.push_back(it->first);
 
@@ -113,7 +194,7 @@ void TsMoleculeTracker::Output()
 	UpdateFileNameForUpcomingRun();
 }
 
-void TsMoleculeTracker::Clear()
+void TsScoreMoleculeTracker::Clear()
 {
 	fParticleName = "";
 	fVolumeName = "";
@@ -121,60 +202,4 @@ void TsMoleculeTracker::Clear()
 	fHits = 0;
 	fScoredHistories = 0;
 	fHitsMap.clear();
-}
-
-void TsMoleculeTracker::UserHookForChemicalStep(const G4Step* aStep)
-{
-	auto aTrack = aStep->GetTrack();
-
-	if (aTrack->GetTrackID() > -1) // this is a physical track
-		return;
-
-	auto globalTime = aStep->GetPreStepPoint()->GetGlobalTime();
-	auto itNextTime = fNextTimeForTrack.emplace(aTrack->GetTrackID(), fTimesToRecord.front()).first;
-
-	if (globalTime >= itNextTime->second && itNextTime->second > 0)
-	{
-		if (GetFilter()->Accept(aStep))
-		{
-			G4TouchableHistory* touchable = (G4TouchableHistory*)(aStep->GetPreStepPoint()->GetTouchable());
-
-			TsMoleculeTrackerIndex idx;
-			idx.IsMolecule = true;
-			idx.ParticleName = GetMolecule(aTrack)->GetName();
-			idx.VolumeName = touchable->GetVolume()->GetName();
-			idx.VolumeCopyNumber = touchable->GetVolume()->GetCopyNo();
-			idx.Time = fNextTimeForTrack[aTrack->GetTrackID()];
-
-			// G4cerr << "Tracked " << idx.ParticleName << " in " << idx.VolumeName << " at time " << idx.Time / ps << " ps" << G4endl;
-
-			++fHitsMap[idx];
-		}
-
-		auto itNextTime = std::upper_bound(fTimesToRecord.begin(), fTimesToRecord.end(), globalTime);
-		if (itNextTime == fTimesToRecord.end())
-			fNextTimeForTrack[aTrack->GetTrackID()] = 0; // do not track anymore
-		else
-			fNextTimeForTrack[aTrack->GetTrackID()] = *itNextTime;
-	}
-
-	if (false)
-	{
-		if (aStep->GetPreStepPoint()->GetStepStatus() == fGeomBoundary)
-		{
-			G4cout << "Step from " << aStep->GetPreStepPoint()->GetTouchable()->GetVolume()->GetName()
-				   << " into " << aStep->GetPreStepPoint()->GetTouchable()->GetVolume()->GetName()
-				   << G4endl;
-		}
-		else
-		{
-			G4cout << "Step within " << aStep->GetPreStepPoint()->GetTouchable()->GetVolume()->GetName()
-				   << G4endl;
-		}
-		G4cout << "Particle Name: "
-			   << (aTrack->GetTrackID() < 0 ? GetMolecule(aTrack)->GetName() : aTrack->GetParticleDefinition()->GetParticleName())
-			   << G4endl;
-		G4cout << "Time: " << aStep->GetPreStepPoint()->GetGlobalTime() / ps << " ps"
-			   << G4endl;
-	}
 }

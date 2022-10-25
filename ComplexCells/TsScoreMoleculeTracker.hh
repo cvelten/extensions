@@ -9,24 +9,26 @@
 // ********************************************************************
 //
 
-#ifndef TsMoleculeTracker_hh
-#define TsMoleculeTracker_hh
+#ifndef TsScoreMoleculeTracker_hh
+#define TsScoreMoleculeTracker_hh
 
 #include "TsVNtupleScorer.hh"
 
-struct TsMoleculeTrackerIndex;
+struct TsScoreMoleculeTrackerIndex;
 
-class TsMoleculeTracker : public TsVNtupleScorer
+class TsScoreMoleculeTracker : public TsVNtupleScorer
 {
 public:
-	TsMoleculeTracker(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
-					  G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer);
+	TsScoreMoleculeTracker(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
+						   G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer);
 
-	virtual ~TsMoleculeTracker() = default;
+	virtual ~TsScoreMoleculeTracker() = default;
 
 	G4bool ProcessHits(G4Step*, G4TouchableHistory*) override;
 	void AbsorbResultsFromWorkerScorer(TsVScorer*) override;
 
+	void UserHookForPreTimeStepAction() override;
+	void UserHookForPostTimeStepAction() override;
 	void UserHookForChemicalStep(const G4Step*) override;
 
 protected:
@@ -45,16 +47,18 @@ private:
 
 	G4double fTimeCut;
 
+	G4bool fReportTimeSteps;
+
 private:
 	std::vector<G4double> fTimesToRecord;
 	std::map<G4int, G4double> fNextTimeForTrack;
-	std::map<TsMoleculeTrackerIndex, G4int> fHitsMap;
+	std::map<TsScoreMoleculeTrackerIndex, G4int> fHitsMap;
 
 public:
-	const std::map<TsMoleculeTrackerIndex, G4int>& GetHitCountMap() const { return fHitsMap; }
+	const std::map<TsScoreMoleculeTrackerIndex, G4int>& GetHitCountMap() const { return fHitsMap; }
 };
 
-struct TsMoleculeTrackerIndex
+struct TsScoreMoleculeTrackerIndex
 {
 	G4String ParticleName;
 	G4String VolumeName;
@@ -62,9 +66,9 @@ struct TsMoleculeTrackerIndex
 	G4bool IsMolecule;
 	G4double Time;
 
-	TsMoleculeTrackerIndex() : IsMolecule(false), Time(0) {}
+	TsScoreMoleculeTrackerIndex() : IsMolecule(false), Time(0) {}
 
-	bool operator<(TsMoleculeTrackerIndex const& other) const
+	bool operator<(TsScoreMoleculeTrackerIndex const& other) const
 	{
 		return ParticleName < other.ParticleName ||
 			   (ParticleName == other.ParticleName && VolumeName < other.VolumeName) ||
