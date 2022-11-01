@@ -10,7 +10,7 @@
 TsFilterByComponentAndChildren::TsFilterByComponentAndChildren(G4String name, TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM,
 															   TsFilterManager* fM, TsVGenerator* generator, TsVScorer* scorer, TsVFilter* parentFilter)
 	: TsVFilter(name, pM, mM, gM, fM, generator, scorer, parentFilter),
-	  fNamesAreVolumes(false)
+	  fIncludeChildren(), fNamesAreVolumes()
 {
 	ResolveParameters();
 
@@ -19,7 +19,15 @@ TsFilterByComponentAndChildren::TsFilterByComponentAndChildren(G4String name, Ts
 
 void TsFilterByComponentAndChildren::ResolveParameters()
 {
-	G4String parName = GetName() + "/NamesAreVolumes";
+	G4String parName;
+
+	parName = GetName() + "/IncludeChildren";
+	if (fPm->ParameterExists(GetFullParmName(parName)))
+		fIncludeChildren = fPm->GetBooleanParameter(GetFullParmName(parName));
+	else
+		fIncludeChildren = true;
+
+	parName = GetName() + "/NamesAreVolumes";
 	if (fPm->ParameterExists(GetFullParmName(parName)))
 		fNamesAreVolumes = fPm->GetBooleanParameter(GetFullParmName(parName));
 
@@ -58,7 +66,7 @@ void TsFilterByComponentAndChildren::CacheGeometryPointers()
 				G4cerr << GetName() << " = " << name << " refers to an unknown Component." << G4endl;
 				fPm->AbortSession(1);
 			}
-			auto physicalVolumes = component->GetAllPhysicalVolumes();
+			auto physicalVolumes = component->GetAllPhysicalVolumes(false);
 			fVolumes.insert(fVolumes.end(), physicalVolumes.begin(), physicalVolumes.end());
 		}
 	}
@@ -70,10 +78,11 @@ G4bool TsFilterByComponentAndChildren::Accept(const G4Step* aStep) const
 {
 	if (fParentFilter && !fParentFilter->Accept(aStep)) return false;
 
-	auto touchable = aStep->GetPreStepPoint()->GetTouchable();
+	const G4VTouchable* touchable = aStep->GetPreStepPoint()->GetTouchable();
 
 	G4VPhysicalVolume* pv;
-	for (auto depth = 0; depth - 1 < touchable->GetHistoryDepth(); ++depth)
+	size_t maxDepth = fIncludeChildren ? touchable->GetHistoryDepth() + 1 : 1;
+	for (size_t depth = 0; depth < maxDepth; ++depth)
 	{
 		pv = touchable->GetVolume(depth);
 		if (pv == nullptr)

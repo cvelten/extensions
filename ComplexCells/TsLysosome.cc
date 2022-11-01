@@ -17,11 +17,12 @@
 #define micromolar (1E-3 * mole / m3)
 
 TsLysosome::TsLysosome(TsParameterManager* pM, TsExtensionManager* eM, TsMaterialManager* mM, TsGeometryManager* gM, TsVGeometryComponent* parentComponent, G4VPhysicalVolume* parentVolume, G4String& name)
-	: TsVComponentWithChildren(pM, eM, mM, gM, parentComponent, parentVolume, name),
-	  fNanomaterialRadius(fNanomaterialRadiusDefault)
+	: TsVComponentWithChildren(pM, eM, mM, gM, parentComponent, parentVolume, name)
 {
 	fIsDividable = false;
 	fCanCalculateSurfaceArea = true;
+
+	fNanomaterialRadius = fNanomaterialRadiusDefault;
 }
 
 G4VPhysicalVolume* TsLysosome::Construct()
@@ -163,7 +164,7 @@ G4bool TsLysosome::IsOnBoundary(G4ThreeVector localpos, G4VSolid* solid, Surface
 	}
 }
 
-G4double TsLysosome::GetAreaOfSelectedSurface(G4VSolid* solid, SurfaceType surfaceID, G4int, G4int, G4int copyNo)
+G4double TsLysosome::GetAreaOfSelectedSurface(G4VSolid* solid, SurfaceType surfaceID, G4int, G4int, G4int)
 {
 	switch (surfaceID) {
 	case AnySurface:

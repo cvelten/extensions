@@ -1,33 +1,24 @@
-// Scorer for MoleculeTupleExtended
-//
-// ********************************************************************
-// *                                                                  *
-// * This file is part of the TOPAS-nBio extensions to the            *
-// *   TOPAS Simulation Toolkit.                                      *
-// * The TOPAS-nBio extensions are freely available under the license *
-// *   agreement set forth at: https://topas-nbio.readthedocs.io/     *
-// *                                                                  *
-// ********************************************************************
-//
+// Scorer for TupleExtended
 
-#include "TsScoreMoleculeTupleExtended.hh"
+#include "TsScoreTupleExtended.hh"
+
+#include "G4Molecule.hh"
 #include "G4ParticleDefinition.hh"
 #include "G4ProcessManager.hh"
 #include "G4Run.hh"
 #include "G4RunManager.hh"
-#include "G4VProcess.hh"
-
 #include "G4SteppingManager.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4VPhysicalVolume.hh"
+#include "G4VProcess.hh"
 #include "G4VTouchable.hh"
 
-#include "G4Molecule.hh"
-
-TsScoreMoleculeTupleExtended::TsScoreMoleculeTupleExtended(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
-														   G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer)
+TsScoreTupleExtended::TsScoreTupleExtended(TsParameterManager* pM, TsMaterialManager* mM, TsGeometryManager* gM, TsScoringManager* scM, TsExtensionManager* eM,
+										   G4String scorerName, G4String quantity, G4String outFileName, G4bool isSubScorer)
 	: TsVNtupleScorer(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer),
-	  fIncludeKineticEnergy(false), fIncludeEventID(false), fIncludeTrackID(false), fIncludeParentID(false), fIncludeStepNumber(false),
+	  fTimesToRecord(), fNextTimeForTrack(),
+	  fIncludeKineticEnergy(false),
+	  fIncludeEventID(false), fIncludeTrackID(false), fIncludeParentID(false), fIncludeStepNumber(false),
 	  fIncludeParticleName(false), fIncludeProcessName(false), fIncludeVolumeName(false), fIncludeVolumeCopyNumber(false),
 	  fIncludeGlobalTime(false), fIncludeEnergyDeposited(false), fIncludeVertex(false)
 {
@@ -53,14 +44,14 @@ TsScoreMoleculeTupleExtended::TsScoreMoleculeTupleExtended(TsParameterManager* p
 				G4cerr << GetName() << " specified a Time to record greater than the Time cut (default: 1 us)" << G4endl;
 				G4cerr << "at which chemical tracks will be killed" << G4endl;
 			}
-			fTimeToRecord.push_back(times[i]);
+			fTimesToRecord.push_back(times[i]);
 		}
 
-		std::sort(fTimeToRecord.begin(), fTimeToRecord.end());
-		// std::reverse(fTimeToRecord.begin(), fTimeToRecord.end());
+		std::sort(fTimesToRecord.begin(), fTimesToRecord.end());
+		// std::reverse(fTimesToRecord.begin(), fTimesToRecord.end());
 	}
 	else {
-		fTimeToRecord.push_back(fTimeCut);
+		fTimesToRecord.push_back(fTimeCut);
 	}
 
 	fIncludeChemistry = true;
@@ -149,7 +140,7 @@ TsScoreMoleculeTupleExtended::TsScoreMoleculeTupleExtended(TsParameterManager* p
 		fNtuple->RegisterColumnF(&fKineticEnergy, "Kinetic Energy", "keV");
 }
 
-G4bool TsScoreMoleculeTupleExtended::ProcessHits(G4Step* aStep, G4TouchableHistory*)
+G4bool TsScoreTupleExtended::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 {
 	if (!fIsActive) {
 		fSkippedWhileInactive++;
@@ -159,55 +150,54 @@ G4bool TsScoreMoleculeTupleExtended::ProcessHits(G4Step* aStep, G4TouchableHisto
 	G4Track* aTrack = aStep->GetTrack();
 
 	if (fIncludeChemistry && aTrack->GetTrackID() < 0) {
-		G4cerr << "Molecule Tracking must be reimplemented" << G4endl;
-		fPm->AbortSession(1);
-
-		/*
 		fGlobalTime = aStep->GetPreStepPoint()->GetGlobalTime();
+		fTime = fNextTimeForTrack.emplace(aTrack->GetTrackID(), fTimesToRecord.front()).first->second;
 
-		if (fTimeToRecord.size() > 0 && fGlobalTime >= fTimeToRecord.front()) {
-			// fTime = fTimeToRecord.back();
-			// fTimeToRecord.pop_back();
-			auto time_iter = std::lower_bound(fTimeToRecord.rbegin(), fTimeToRecord.rend(), fGlobalTime, std::greater<G4double>());
-			fTime = (time_iter == fTimeToRecord.rend()) ? 0 : *time_iter;
+		if (fTime > 0) {
+			if (fGlobalTime >= fTime)
+			{
+				G4TouchableHistory* touchable = (G4TouchableHistory*)(aStep->GetPreStepPoint()->GetTouchable());
 
-			G4TouchableHistory* touchable = (G4TouchableHistory*)(aStep->GetPreStepPoint()->GetTouchable());
-			fVolumeName = touchable->GetVolume()->GetName();
-			fVolumeCopyNumber = touchable->GetVolume()->GetCopyNo();
+				fVolumeName = touchable->GetVolume()->GetName();
+				fVolumeCopyNumber = touchable->GetVolume()->GetCopyNo();
 
-			fEvt = GetEventID();
-			fKineticEnergy = aStep->GetPreStepPoint()->GetKineticEnergy();
-			G4ThreeVector pos = aStep->GetPreStepPoint()->GetPosition();
-			fPosX = pos.x();
-			fPosY = pos.y();
-			fPosZ = pos.z();
-			if (fIncludeVertex) {
-				G4ThreeVector vpos = aTrack->GetVertexPosition();
-				fVertexPositionX = vpos.x();
-				fVertexPositionY = vpos.y();
-				fVertexPositionZ = vpos.z();
+				fEvt = GetEventID();
+				fKineticEnergy = aStep->GetPreStepPoint()->GetKineticEnergy();
+				G4ThreeVector pos = aStep->GetPreStepPoint()->GetPosition();
+				fPosX = pos.x();
+				fPosY = pos.y();
+				fPosZ = pos.z();
+				if (fIncludeVertex) {
+					G4ThreeVector vpos = aTrack->GetVertexPosition();
+					fVertexPositionX = vpos.x();
+					fVertexPositionY = vpos.y();
+					fVertexPositionZ = vpos.z();
+				}
+
+				fParentAID = -1;
+				fParentBID = -1;
+				fTrackID = aTrack->GetTrackID();
+
+				fParticleName = GetMolecule(aTrack)->GetName();
+				fMoleculeID = GetMolecule(aTrack)->GetMoleculeID();
+
+				GetMolecule(aTrack)->GetParentID(fParentAID, fParentBID);
+				fEnergyDeposited = 0.0;
+				fProcessName = "none";
+				fStepNumber = aTrack->GetCurrentStepNumber();
+
+				fNtuple->Fill();
+
+				return true;
 			}
 
-			fParentAID = -1;
-			fParentBID = -1;
-			fTrackID = aTrack->GetTrackID();
-
-			fParticleName = GetMolecule(aTrack)->GetName();
-			fMoleculeID = GetMolecule(aTrack)->GetMoleculeID();
-
-			GetMolecule(aTrack)->GetParentID(fParentAID, fParentBID);
-			fEnergyDeposited = 0.0;
-			fProcessName = "none";
-			fStepNumber = aTrack->GetCurrentStepNumber();
-
-			fNtuple->Fill();
-
-			if (fTime > fTimeCut)
-				aStep->GetTrack()->SetTrackStatus(fStopAndKill);
-
-			return true;
+			// Set next tracking time for track
+			auto itNextTrackingTime = std::upper_bound(fTimesToRecord.cbegin(), fTimesToRecord.cend(), fGlobalTime);
+			if (itNextTrackingTime == fTimesToRecord.cend())
+				fNextTimeForTrack[aTrack->GetTrackID()] = 0; // do not track anymore
+			else
+				fNextTimeForTrack[aTrack->GetTrackID()] = *itNextTrackingTime;
 		}
-		*/
 	}
 	else if (fIncludePhysics && aStep->GetTotalEnergyDeposit() > 0) {
 		G4TouchableHistory* touchable = (G4TouchableHistory*)(aStep->GetPreStepPoint()->GetTouchable());

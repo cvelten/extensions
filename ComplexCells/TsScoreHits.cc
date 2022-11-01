@@ -43,7 +43,9 @@ TsScoreHits::TsScoreHits(TsParameterManager* pM, TsMaterialManager* mM, TsGeomet
 		{
 			if (times[i] > fTimeCut)
 			{
-				G4cerr << GetName() << " specified a time to record greater than the time cut (default: 1 us)" << G4endl;
+				G4cerr << GetName() << " specified a time to record (" << times[i] << ")"
+					   << "greater than the time cut (default: 1 us)"
+					   << G4endl;
 				G4cerr << "at which chemical tracks will be killed" << G4endl;
 			}
 			fTimesToRecord.push_back(times[i]);
@@ -97,11 +99,11 @@ G4bool TsScoreHits::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 
 			++fHitsMap[idx];
 
-			auto itNextTime = std::upper_bound(fTimesToRecord.begin(), fTimesToRecord.end(), globalTime);
-			if (itNextTime == fTimesToRecord.end())
+			auto itNextTrackingTime = std::upper_bound(fTimesToRecord.begin(), fTimesToRecord.end(), globalTime);
+			if (itNextTrackingTime == fTimesToRecord.end())
 				fNextTimeForTrack[aTrack->GetTrackID()] = 0;
 			else
-				fNextTimeForTrack[aTrack->GetTrackID()] = *itNextTime;
+				fNextTimeForTrack[aTrack->GetTrackID()] = *itNextTrackingTime;
 		}
 	}
 	else if (fIncludePhysics && aStep->GetTotalEnergyDeposit() > 0) {
@@ -123,7 +125,8 @@ G4bool TsScoreHits::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 
 void TsScoreHits::AbsorbResultsFromWorkerScorer(TsVScorer* workerScorer)
 {
-	G4cerr << "TsScoreHits::AbsorbResultsFromWorkerScorer" << G4endl;
+	if (fVerbosity > 1)
+		G4cout << "TsScoreHits::AbsorbResultsFromWorkerScorer" << G4endl;
 
 	TsVNtupleScorer::AbsorbResultsFromWorkerScorer(workerScorer);
 
@@ -158,15 +161,17 @@ void TsScoreHits::Output()
 	fNtuple->Write();
 
 	// report additional statistics to stdout
-	G4cout << G4endl;
-	G4cout << "Scorer: " << GetNameWithSplitId() << G4endl;
-	if (fNtuple->HasHeaderFile())
-		G4cout << "Header   has been written to file: " << fNtuple->GetHeaderFileName() << G4endl;
-	G4cout << "Contents has been written to file: " << fNtuple->GetDataFileName() << G4endl;
-	if (fPm->ParameterExists(GetFullParmName("Surface")))
-		G4cout << "Scored on surface: " << fComponent->GetName() << "/" << GetSurfaceName() << G4endl;
-	else
-		G4cout << "Scored in component: " << fComponent->GetName() << G4endl;
+	if (fVerbosity > 0) {
+		G4cout << G4endl;
+		G4cout << "Scorer: " << GetNameWithSplitId() << G4endl;
+		if (fNtuple->HasHeaderFile())
+			G4cout << "Header   has been written to file: " << fNtuple->GetHeaderFileName() << G4endl;
+		G4cout << "Contents has been written to file: " << fNtuple->GetDataFileName() << G4endl;
+		if (fPm->ParameterExists(GetFullParmName("Surface")))
+			G4cout << "Scored on surface: " << fComponent->GetName() << "/" << GetSurfaceName() << G4endl;
+		else
+			G4cout << "Scored in component: " << fComponent->GetName() << G4endl;
+	}
 
 	UpdateFileNameForUpcomingRun();
 }

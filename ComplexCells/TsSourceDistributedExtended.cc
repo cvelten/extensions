@@ -74,14 +74,14 @@ void TsSourceDistributedExtended::ResolveParameters()
 		fPointDistribution = GAUSSIAN;
 		fPointDistributionSigma = fPm->GetDoubleParameter(GetFullParmName("PointDistributionSigma"), "Length");
 		if (fPointDistributionSigma <= 0.) {
-			G4cout << GetFullParmName("PointDistributionSigma") << " must be greater than zero." << G4endl;
+			G4cerr << GetFullParmName("PointDistributionSigma") << " must be greater than zero." << G4endl;
 			fPm->AbortSession(1);
 		}
 	}
 	else {
-		G4cout << "Particle source \"" << fSourceName << "\" has unknown PointDistribution \""
+		G4cerr << "Particle source \"" << fSourceName << "\" has unknown PointDistribution \""
 			   << fPm->GetStringParameter(GetFullParmName("PointDistribution")) << "\"" << G4endl;
-		G4cout << "Accepted values are Flat and Gaussian." << G4endl;
+		G4cerr << "Accepted values are Flat and Gaussian." << G4endl;
 		fPm->AbortSession(1);
 	}
 
@@ -100,8 +100,6 @@ void TsSourceDistributedExtended::ResolveParameters()
 
 void TsSourceDistributedExtended::PrepareSampledPoints()
 {
-	G4cerr << "(" << GetName() << ")TsSourceDistributedExtended::PrepareSampledPoints()" << G4endl;
-
 	fPreviousNumberOfSourcePoints = fNumberOfSourcePoints;
 	fSampledPoints.clear();
 

@@ -18,10 +18,12 @@
 
 TsComplexCell::TsComplexCell(TsParameterManager* pM, TsExtensionManager* eM, TsMaterialManager* mM, TsGeometryManager* gM, TsVGeometryComponent* parentComponent, G4VPhysicalVolume* parentVolume, G4String& name)
 	: TsVComponentWithChildren(pM, eM, mM, gM, parentComponent, parentVolume, name),
-	  fUseParameterSystem(false), fLysosomesN(0), fMitochondriaN(0), fNucleusRadius(0)
+	  fUseParameterSystem(), fNucleusRadius(), fLysosomesN(), fMitochondriaN()
 {
 	fIsDividable = false;
 	// fCanCalculateSurfaceArea = false;
+
+	fUseParameterSystem = false;
 }
 
 G4VPhysicalVolume* TsComplexCell::Construct()
@@ -366,7 +368,7 @@ void TsComplexCell::ConstructMitochondria()
 	if (!fPm->ParameterExists(GetFullParmName("Mitochondria", "N")))
 		return;
 
-	G4int fMitochondriaN = fPm->GetIntegerParameter(GetFullParmName("Mitochondria", "N"));
+	fMitochondriaN = fPm->GetIntegerParameter(GetFullParmName("Mitochondria", "N"));
 
 	if (!fPm->ParameterExists(GetFullParmName("Mitochondria", "Material")))
 		fPm->CloneParameter(GetFullParmName("Material"), GetFullParmName("Mitochondria", "Material"));

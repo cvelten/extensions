@@ -19,6 +19,7 @@ public:
 	void CacheGeometryPointers() override;
 
 private:
+	G4bool fIncludeChildren;
 	G4bool fNamesAreVolumes;
 
 	std::vector<G4String> fNames;
