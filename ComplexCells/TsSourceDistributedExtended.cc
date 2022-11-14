@@ -46,6 +46,7 @@ void TsSourceDistributedExtended::ResolveParameters()
 		fRedistributePointsOnNewRun = fPm->GetBooleanParameter(GetFullParmName("RedistributePointsOnNewRun"));
 
 	fNumberOfSourcePoints = fPm->GetIntegerParameter(GetFullParmName("NumberOfSourcePoints"));
+	fNumberOfSourcePointsPerHistory = fNumberOfSourcePoints;
 	if (fNumberOfSourcePoints < 1) {
 		G4cerr << "TOPAS is exiting due to a serious error in the distributed source: " << GetName() << G4endl;
 		G4cerr << "NumberOfSourcePoints must be greater than zero." << G4endl;
@@ -54,7 +55,8 @@ void TsSourceDistributedExtended::ResolveParameters()
 
 	if (fPm->ParameterExists(GetFullParmName("NumberOfSourcePointsPerHistory")))
 		fNumberOfSourcePointsPerHistory = fPm->GetIntegerParameter(GetFullParmName("NumberOfSourcePointsPerHistory"));
-	if (fNumberOfSourcePointsPerHistory < 1 || fNumberOfSourcePointsPerHistory > fNumberOfSourcePoints) {
+	if (fNumberOfSourcePointsPerHistory < 1 || fNumberOfSourcePointsPerHistory > fNumberOfSourcePoints)
+	{
 		G4cerr << "TOPAS is exiting due to a serious error in the distributed source: " << GetName() << G4endl;
 		G4cerr << "NumberOfSourcePointsPerHistory must be greater than zero and smaller than NumberOfSourcePoints." << G4endl;
 		fPm->AbortSession(1);
