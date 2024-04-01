@@ -1,15 +1,15 @@
-#ifndef TsSimpleScavengerProcess_hh
-#define TsSimpleScavengerProcess_hh
+#ifndef CvSimpleScavengerProcess_hh
+#define CvSimpleScavengerProcess_hh
 
 #include "G4VITRestDiscreteProcess.hh"
 
 class G4MolecularConfiguration;
 
-class TsSimpleScavengerProcess : public G4VITRestDiscreteProcess
+class CvSimpleScavengerProcess : public G4VITRestDiscreteProcess
 {
 public:
-	TsSimpleScavengerProcess(const G4String& aName = "SimpleScavengerProcess", G4ProcessType type = fDecay);
-	~TsSimpleScavengerProcess() override = default;
+	CvSimpleScavengerProcess(const G4String& aName = "SimpleScavengerProcess", G4ProcessType type = fDecay);
+	~CvSimpleScavengerProcess() override = default;
 
 public:
 	void StartTracking(G4Track*) override;

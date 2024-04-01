@@ -1,16 +1,16 @@
-// Extra Class for TsVComponentWithChildren
+// Extra Class for VComponentWithChildren
 
 #ifndef TsSphereWithChildren_hh
 #define TsSphereWithChildren_hh
 
 #include "TsVGeometryComponent.hh"
 
-class TsVComponentWithChildren : public TsVGeometryComponent
+class VComponentWithChildren : public TsVGeometryComponent
 {
 public:
-	TsVComponentWithChildren(TsParameterManager* pM, TsExtensionManager* eM, TsMaterialManager* mM, TsGeometryManager* gM,
+	VComponentWithChildren(TsParameterManager* pM, TsExtensionManager* eM, TsMaterialManager* mM, TsGeometryManager* gM,
 							 TsVGeometryComponent* parentComponent, G4VPhysicalVolume* parentVolume, G4String& name);
-	virtual ~TsVComponentWithChildren() = default;
+	virtual ~VComponentWithChildren() = default;
 
 	virtual G4VPhysicalVolume* Construct() = 0;
 

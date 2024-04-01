@@ -3,9 +3,9 @@
 #ifndef TsLysosome_hh
 #define TsLysosome_hh
 
-#include "TsVComponentWithChildren.hh"
+#include "VComponentWithChildren.hh"
 
-class TsLysosome : public TsVComponentWithChildren
+class TsLysosome : public VComponentWithChildren
 {
 public:
 	TsLysosome(TsParameterManager* pM, TsExtensionManager* eM, TsMaterialManager* mM, TsGeometryManager* gM,

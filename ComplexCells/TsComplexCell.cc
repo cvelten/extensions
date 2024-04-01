@@ -17,7 +17,7 @@
 #define micromolar (1E-3 * mole / m3)
 
 TsComplexCell::TsComplexCell(TsParameterManager* pM, TsExtensionManager* eM, TsMaterialManager* mM, TsGeometryManager* gM, TsVGeometryComponent* parentComponent, G4VPhysicalVolume* parentVolume, G4String& name)
-	: TsVComponentWithChildren(pM, eM, mM, gM, parentComponent, parentVolume, name),
+	: VComponentWithChildren(pM, eM, mM, gM, parentComponent, parentVolume, name),
 	  fUseParameterSystem(), fNucleusRadius(), fLysosomesN(), fMitochondriaN()
 {
 	fIsDividable = false;
@@ -73,7 +73,7 @@ G4VPhysicalVolume* TsComplexCell::Construct()
 
 	//
 	// Duplicate Source
-	TsVComponentWithChildren::DuplicateSource();
+	VComponentWithChildren::DuplicateSource();
 
 	return fEnvelopePhys;
 }

@@ -17,7 +17,7 @@
 #define micromolar (1E-3 * mole / m3)
 
 TsLysosome::TsLysosome(TsParameterManager* pM, TsExtensionManager* eM, TsMaterialManager* mM, TsGeometryManager* gM, TsVGeometryComponent* parentComponent, G4VPhysicalVolume* parentVolume, G4String& name)
-	: TsVComponentWithChildren(pM, eM, mM, gM, parentComponent, parentVolume, name)
+	: VComponentWithChildren(pM, eM, mM, gM, parentComponent, parentVolume, name)
 {
 	fIsDividable = false;
 	fCanCalculateSurfaceArea = true;

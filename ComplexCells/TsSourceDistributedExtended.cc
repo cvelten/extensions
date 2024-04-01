@@ -34,7 +34,8 @@ void TsSourceDistributedExtended::UpdateForNewRun(G4bool rebuiltSomeComponents)
 {
 	TsSource::UpdateForNewRun(rebuiltSomeComponents);
 
-	if (fRedistributePointsOnNewRun || fNumberOfSourcePoints != fPreviousNumberOfSourcePoints)
+	if (fNumberOfHistoriesInRun > 0 &&
+		(fRedistributePointsOnNewRun || fNumberOfSourcePoints != fPreviousNumberOfSourcePoints))
 		PrepareSampledPoints();
 }
 

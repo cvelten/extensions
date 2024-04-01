@@ -20,7 +20,7 @@
 // #include "TsDNAFirstOrderReaction.hh"
 #include "TsDNARemoveInMaterial.hh"
 // #include "TsStochasticScavengerProcess.hh"
-#include "TsSimpleScavengerProcess.hh"
+#include "CvSimpleScavengerProcess.hh"
 
 #include "G4Material.hh"
 #include "G4PhysicalConstants.hh"
@@ -659,7 +659,7 @@ void TsEmDNAChemistryCV::ConstructProcess()
 			for (size_t u = 0; u < fScavengedMolecules.size(); u++) {
 				if (moleculeDef->GetName() == fScavengedMolecules[u]) {
 					// TsDNAFirstOrderReaction* firstOrd = new TsDNAFirstOrderReaction();
-					TsSimpleScavengerProcess* scavengerProc = new TsSimpleScavengerProcess();
+					CvSimpleScavengerProcess* scavengerProc = new CvSimpleScavengerProcess();
 
 					G4MolecularConfiguration* mC = G4MoleculeTable::Instance()->GetConfiguration(fScavengedMolecules[u]);
 					if (!fScavengerHasProducts[u])

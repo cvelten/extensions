@@ -18,7 +18,7 @@
 #include "TsDNARemoveInMaterial.hh"
 #include "TsDNARuddIonisationExtendedModel.hh"
 #include "TsParameterManager.hh"
-#include "TsSimpleScavengerProcess.hh"
+#include "CvSimpleScavengerProcess.hh"
 
 #include "G4Material.hh"
 #include "G4PhysicalConstants.hh"
@@ -706,7 +706,7 @@ void TsEmDNAChemistryExtendedCV::ConstructProcess()
 			ph->RegisterProcess(brown, moleculeDef);
 			for (size_t u = 0; u < fScavengedMolecules.size(); u++) {
 				if (moleculeDef->GetName() == fScavengedMolecules[u]) {
-					TsSimpleScavengerProcess* firstOrd = new TsSimpleScavengerProcess();
+					CvSimpleScavengerProcess* firstOrd = new CvSimpleScavengerProcess();
 					firstOrd->SetVerboseLevel(1);
 
 					G4MolecularConfiguration* mC = G4MoleculeTable::Instance()->GetConfiguration(fScavengedMolecules[u]);

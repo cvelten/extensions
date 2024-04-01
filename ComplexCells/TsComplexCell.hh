@@ -3,9 +3,9 @@
 #ifndef TsComplexCell_hh
 #define TsComplexCell_hh
 
-#include "TsVComponentWithChildren.hh"
+#include "VComponentWithChildren.hh"
 
-class TsComplexCell : public TsVComponentWithChildren
+class TsComplexCell : public VComponentWithChildren
 {
 public:
 	TsComplexCell(TsParameterManager* pM, TsExtensionManager* eM, TsMaterialManager* mM, TsGeometryManager* gM,

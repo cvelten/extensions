@@ -1,6 +1,6 @@
-// Extra Class for TsVComponentWithChildren
+// Extra Class for VComponentWithChildren
 
-#include "TsVComponentWithChildren.hh"
+#include "VComponentWithChildren.hh"
 
 #include "G4VPhysicalVolume.hh"
 #include "TsParameterManager.hh"
@@ -15,11 +15,11 @@
 
 #include <vector>
 
-TsVComponentWithChildren::TsVComponentWithChildren(TsParameterManager* pM, TsExtensionManager* eM, TsMaterialManager* mM, TsGeometryManager* gM, TsVGeometryComponent* parentComponent, G4VPhysicalVolume* parentVolume, G4String& name)
+VComponentWithChildren::VComponentWithChildren(TsParameterManager* pM, TsExtensionManager* eM, TsMaterialManager* mM, TsGeometryManager* gM, TsVGeometryComponent* parentComponent, G4VPhysicalVolume* parentVolume, G4String& name)
 	: TsVGeometryComponent(pM, eM, mM, gM, parentComponent, parentVolume, name)
 {}
 
-std::vector<G4VPhysicalVolume*> TsVComponentWithChildren::ConstructSphericalChildren(G4String name, G4double radialOffset)
+std::vector<G4VPhysicalVolume*> VComponentWithChildren::ConstructSphericalChildren(G4String name, G4double radialOffset)
 {
 	if (!fPm->ParameterExists(GetFullParmName(name, "N")))
 		return std::vector<G4VPhysicalVolume*>();
@@ -29,7 +29,7 @@ std::vector<G4VPhysicalVolume*> TsVComponentWithChildren::ConstructSphericalChil
 	return ConstructSphericalChildren(name, n, radius, radialOffset);
 }
 
-std::vector<G4VPhysicalVolume*> TsVComponentWithChildren::ConstructSphericalChildren(G4String name, G4int n, G4double radius, G4double radialOffset, G4VPhysicalVolume* parent, G4bool independentLogicals)
+std::vector<G4VPhysicalVolume*> VComponentWithChildren::ConstructSphericalChildren(G4String name, G4int n, G4double radius, G4double radialOffset, G4VPhysicalVolume* parent, G4bool independentLogicals)
 {
 	if (fPm->ParameterExists(GetFullParmName(name, "N")))
 		n = fPm->GetIntegerParameter(GetFullParmName(name, "N"));
@@ -51,7 +51,7 @@ std::vector<G4VPhysicalVolume*> TsVComponentWithChildren::ConstructSphericalChil
 	return RandomlyPlaceSolid(solid, n, radialOffset, parent, independentLogicals, name);
 }
 
-std::vector<G4VPhysicalVolume*> TsVComponentWithChildren::ConstructEllipsoidalChildren(G4String name, G4double radialOffset)
+std::vector<G4VPhysicalVolume*> VComponentWithChildren::ConstructEllipsoidalChildren(G4String name, G4double radialOffset)
 {
 	if (!fPm->ParameterExists(GetFullParmName(name, "N")))
 		return std::vector<G4VPhysicalVolume*>();
@@ -63,7 +63,7 @@ std::vector<G4VPhysicalVolume*> TsVComponentWithChildren::ConstructEllipsoidalCh
 	return ConstructEllipsoidalChildren(name, n, semiAxisA, semiAxisB, semiAxisC, radialOffset);
 }
 
-std::vector<G4VPhysicalVolume*> TsVComponentWithChildren::ConstructEllipsoidalChildren(G4String name, G4int n, G4double semiAxisA, G4double semiAxisB, G4double semiAxisC, G4double radialOffset, G4VPhysicalVolume* parent, G4bool independentLogicals)
+std::vector<G4VPhysicalVolume*> VComponentWithChildren::ConstructEllipsoidalChildren(G4String name, G4int n, G4double semiAxisA, G4double semiAxisB, G4double semiAxisC, G4double radialOffset, G4VPhysicalVolume* parent, G4bool independentLogicals)
 {
 	if (n <= 0 && fPm->ParameterExists(GetFullParmName(name, "N")))
 		n = fPm->GetIntegerParameter(GetFullParmName(name, "N"));
@@ -87,7 +87,7 @@ std::vector<G4VPhysicalVolume*> TsVComponentWithChildren::ConstructEllipsoidalCh
 	return RandomlyPlaceSolid(solid, n, radialOffset, parent, independentLogicals, name);
 }
 
-std::vector<G4VPhysicalVolume*> TsVComponentWithChildren::RandomlyPlaceSolid(G4VSolid* solid, G4int n, G4double radialOffset, G4VPhysicalVolume* parent, G4bool independentLogicals, G4String name)
+std::vector<G4VPhysicalVolume*> VComponentWithChildren::RandomlyPlaceSolid(G4VSolid* solid, G4int n, G4double radialOffset, G4VPhysicalVolume* parent, G4bool independentLogicals, G4String name)
 {
 	if (parent == nullptr)
 		parent = fEnvelopePhys;
@@ -156,7 +156,7 @@ std::vector<G4VPhysicalVolume*> TsVComponentWithChildren::RandomlyPlaceSolid(G4V
 	return children;
 }
 
-G4ThreeVector TsVComponentWithChildren::GetPointWithinVolume(G4VSolid* solid, G4double minDistanceFromSurface) const
+G4ThreeVector VComponentWithChildren::GetPointWithinVolume(G4VSolid* solid, G4double minDistanceFromSurface) const
 {
 	G4ThreeVector surfacePoint = solid->GetPointOnSurface();
 	G4ThreeVector surfaceNormal = solid->SurfaceNormal(surfacePoint);
@@ -169,7 +169,7 @@ G4ThreeVector TsVComponentWithChildren::GetPointWithinVolume(G4VSolid* solid, G4
 	return surfacePoint + stepLength * (-surfaceNormal);
 }
 
-void TsVComponentWithChildren::DuplicateSource()
+void VComponentWithChildren::DuplicateSource()
 {
 	std::vector<G4String> clonedSources, cloningVolumes;
 
@@ -217,14 +217,14 @@ void TsVComponentWithChildren::DuplicateSource()
 	}
 }
 
-G4String TsVComponentWithChildren::ConstructParameterName(const char* component, const char* parmName)
+G4String VComponentWithChildren::ConstructParameterName(const char* component, const char* parmName)
 {
 	// G4String s_component = G4String(component
 	G4String fullName = "Ge/" + G4String(component) + "/" + G4String(parmName);
 	return fullName;
 }
 
-std::string TsVComponentWithChildren::StringReplace(std::string str, const std::string& from, const std::string& to)
+std::string VComponentWithChildren::StringReplace(std::string str, const std::string& from, const std::string& to)
 {
 	size_t start_pos = str.find(from);
 	if (start_pos != std::string::npos)

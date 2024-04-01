@@ -1,6 +1,6 @@
 // Extra Class for TsEmDNAChemistry
 
-#include "TsSimpleScavengerProcess.hh"
+#include "CvSimpleScavengerProcess.hh"
 
 #include "G4MolecularConfiguration.hh"
 #include "G4Molecule.hh"
@@ -11,7 +11,7 @@
 #define State(theXInfo) (GetState<ScavengerState>()->theXInfo)
 #endif
 
-TsSimpleScavengerProcess::TsSimpleScavengerProcess(const G4String& aName, G4ProcessType type)
+CvSimpleScavengerProcess::CvSimpleScavengerProcess(const G4String& aName, G4ProcessType type)
 	: G4VITRestDiscreteProcess(aName, type),
 	  fIsInitialized(false),
 	  fMolecularConfiguration(nullptr), fProductsMolecularConfigurations(), fScavengingCapacity(0), fHasProducts(false)
@@ -28,30 +28,30 @@ TsSimpleScavengerProcess::TsSimpleScavengerProcess(const G4String& aName, G4Proc
 	pParticleChange = &fParticleChange;
 }
 
-TsSimpleScavengerProcess::ScavengerState::ScavengerState()
+CvSimpleScavengerProcess::ScavengerState::ScavengerState()
 	: G4ProcessState(), fPreviousTimeAtPreStepPoint(-1)
 {}
 
-void TsSimpleScavengerProcess::BuildPhysicsTable(const G4ParticleDefinition&)
+void CvSimpleScavengerProcess::BuildPhysicsTable(const G4ParticleDefinition&)
 {
 	fIsInitialized = true;
 }
 
-void TsSimpleScavengerProcess::StartTracking(G4Track* track)
+void CvSimpleScavengerProcess::StartTracking(G4Track* track)
 {
 	G4VProcess::StartTracking(track);
 	G4VITProcess::fpState.reset(new ScavengerState());
 	G4VITProcess::StartTracking(track);
 }
 
-void TsSimpleScavengerProcess::SetReaction(const G4MolecularConfiguration* molConf,
+void CvSimpleScavengerProcess::SetReaction(const G4MolecularConfiguration* molConf,
 										   double scavengingCapacity)
 {
 	if (fIsInitialized) {
 		G4ExceptionDescription exceptionDescription;
-		exceptionDescription << "TsSimpleScavengerProcess was already initialised. ";
+		exceptionDescription << "CvSimpleScavengerProcess was already initialised. ";
 		exceptionDescription << "You cannot set a reaction after initialisation.";
-		G4Exception("TsSimpleScavengerProcess::SetReaction", "TsSimpleScavengerProcess001",
+		G4Exception("CvSimpleScavengerProcess::SetReaction", "CvSimpleScavengerProcess001",
 					FatalErrorInArgument, exceptionDescription);
 	}
 
@@ -61,19 +61,19 @@ void TsSimpleScavengerProcess::SetReaction(const G4MolecularConfiguration* molCo
 	fHasProducts = false;
 }
 
-void TsSimpleScavengerProcess::SetReaction(const G4MolecularConfiguration* molConf,
+void CvSimpleScavengerProcess::SetReaction(const G4MolecularConfiguration* molConf,
 										   const std::vector<G4MolecularConfiguration*>& products,
 										   double scavengingCapacity)
 {
 	if (fIsInitialized) {
 		G4ExceptionDescription exceptionDescription;
-		exceptionDescription << "TsSimpleScavengerProcess was already initialised. ";
+		exceptionDescription << "CvSimpleScavengerProcess was already initialised. ";
 		exceptionDescription << "You cannot set a reaction after initialisation.";
-		G4Exception("TsSimpleScavengerProcess::SetReaction", "TsSimpleScavengerProcess001",
+		G4Exception("CvSimpleScavengerProcess::SetReaction", "CvSimpleScavengerProcess001",
 					FatalErrorInArgument, exceptionDescription);
 	}
 
-	G4cerr << "TsSimpleScavengerProcess currently has NOT implemented scavenging with chemical products - it will just kill the track!" << G4endl;
+	G4cerr << "CvSimpleScavengerProcess currently has NOT implemented scavenging with chemical products - it will just kill the track!" << G4endl;
 
 	fMolecularConfiguration = molConf;
 	fProductsMolecularConfigurations = std::vector<G4MolecularConfiguration*>(products);
@@ -81,12 +81,12 @@ void TsSimpleScavengerProcess::SetReaction(const G4MolecularConfiguration* molCo
 	fHasProducts = true;
 }
 
-G4double TsSimpleScavengerProcess::PostStepGetPhysicalInteractionLength(const G4Track& track, G4double, G4ForceCondition* pForceCond)
+G4double CvSimpleScavengerProcess::PostStepGetPhysicalInteractionLength(const G4Track& track, G4double, G4ForceCondition* pForceCond)
 {
 	return AtRestGetPhysicalInteractionLength(track, pForceCond);
 }
 
-G4double TsSimpleScavengerProcess::AtRestGetPhysicalInteractionLength(const G4Track& track, G4ForceCondition* pForceCond)
+G4double CvSimpleScavengerProcess::AtRestGetPhysicalInteractionLength(const G4Track& track, G4ForceCondition* pForceCond)
 {
 	G4Molecule* mol = GetMolecule(track);
 	if (mol == nullptr || mol->GetMolecularConfiguration() != fMolecularConfiguration)
@@ -113,12 +113,12 @@ G4double TsSimpleScavengerProcess::AtRestGetPhysicalInteractionLength(const G4Tr
 	return -(fpState->theNumberOfInteractionLengthLeft * fpState->currentInteractionLength);
 }
 
-G4double TsSimpleScavengerProcess::GetMeanFreePath(const G4Track& track, G4double, G4ForceCondition* pForceCond)
+G4double CvSimpleScavengerProcess::GetMeanFreePath(const G4Track& track, G4double, G4ForceCondition* pForceCond)
 {
 	return GetMeanLifeTime(track, pForceCond);
 }
 
-G4double TsSimpleScavengerProcess::GetMeanLifeTime(const G4Track& track, G4ForceCondition* pForceCond)
+G4double CvSimpleScavengerProcess::GetMeanLifeTime(const G4Track& track, G4ForceCondition* pForceCond)
 {
 	G4double previousTimeStep = 0;
 	if (State(fPreviousTimeAtPreStepPoint) != -1) {
@@ -153,15 +153,15 @@ G4double TsSimpleScavengerProcess::GetMeanLifeTime(const G4Track& track, G4Force
 	return DBL_MAX;
 }
 
-G4VParticleChange* TsSimpleScavengerProcess::PostStepDoIt(const G4Track& track, const G4Step& aStep)
+G4VParticleChange* CvSimpleScavengerProcess::PostStepDoIt(const G4Track& track, const G4Step& aStep)
 {
 	return AtRestDoIt(track, aStep);
 }
 
-G4VParticleChange* TsSimpleScavengerProcess::AtRestDoIt(const G4Track& track, const G4Step&)
+G4VParticleChange* CvSimpleScavengerProcess::AtRestDoIt(const G4Track& track, const G4Step&)
 {
 	if (verboseLevel > 0) {
-		G4cout << " -- TsSimpleScavengerProcess::PostStepDoIt: " << track.GetTrackID() << " (" << GetMolecule(track)->GetName() << ")" << G4endl;
+		G4cout << " -- CvSimpleScavengerProcess::PostStepDoIt: " << track.GetTrackID() << " (" << GetMolecule(track)->GetName() << ")" << G4endl;
 	}
 
 	/*
